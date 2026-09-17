@@ -10,6 +10,7 @@ from dependency_service.incident_state import (
 from telemetry.logging_config import configure_logging
 from telemetry.request_logging import add_request_logging
 
+from telemetry.tracing import configure_tracing
 
 app = FastAPI(
     title="Dependency Service",
@@ -26,6 +27,10 @@ add_request_logging(
     excluded_path_prefixes=("/control/",),
 )
 
+configure_tracing(
+    app,
+    service_name="dependency-service",
+)
 
 @app.get("/")
 def root():

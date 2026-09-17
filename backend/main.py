@@ -8,6 +8,7 @@ from backend.dependency_client import fetch_dependency_data
 from telemetry.logging_config import configure_logging
 from telemetry.request_logging import add_request_logging
 
+from telemetry.tracing import configure_tracing
 
 app = FastAPI(
     title="AI Production Incident Investigator - Demo Service",
@@ -20,6 +21,12 @@ configure_logging()
 add_request_logging(
     app,
     service_name="incident-demo-api",
+)
+
+configure_tracing(
+    app,
+    service_name="incident-demo-api",
+    instrument_httpx=True,
 )
 
 @app.get("/")

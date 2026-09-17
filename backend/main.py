@@ -50,23 +50,35 @@ async def get_inventory(request: Request):
             "dependency": dependency_response
         }
 
+    except (httpx.ConnectError, httpx.ConnectTimeout):
+        raise HTTPException(
+        status_code=503,
+        detail="Dependency service unavailable"
+    )
+
+    except httpx.ReadTimeout:
+        raise HTTPException(
+        status_code=504,
+        detail="Dependency service timed out"
+    )
+
     except httpx.TimeoutException:
         raise HTTPException(
-            status_code=504,
-            detail="Dependency service timed out"
-        )
+        status_code=504,
+        detail="Dependency service timed out"
+    )
 
     except httpx.HTTPStatusError as exc:
         raise HTTPException(
-            status_code=502,
-            detail=(
-                "Dependency service returned "
-                f"HTTP {exc.response.status_code}"
-            )
+        status_code=502,
+        detail=(
+            "Dependency service returned "
+            f"HTTP {exc.response.status_code}"
         )
+    )
 
     except httpx.RequestError:
         raise HTTPException(
-            status_code=503,
-            detail="Dependency service unavailable"
-        )
+        status_code=503,
+        detail="Dependency service unavailable"
+    )

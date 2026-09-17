@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 def add_request_logging(
     app: FastAPI,
     service_name: str,
+    excluded_path_prefixes: tuple[str, ...] = (),
 ):
     logger = logging.getLogger(
         f"{service_name}.requests"
@@ -18,6 +19,12 @@ def add_request_logging(
         request: Request,
         call_next,
     ):
+        if any(
+        request.url.path.startswith(prefix)
+        for prefix in excluded_path_prefixes
+        ):
+            return await call_next(request)
+
         request_id = (
             request.headers.get("X-Request-ID")
             or str(uuid.uuid4())

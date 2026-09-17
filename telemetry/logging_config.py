@@ -12,10 +12,11 @@ STRUCTURED_FIELDS = (
     "path",
     "status_code",
     "duration_ms",
-    "upstream_service",
+    "downstream_service",
+    "dependency_url",
+    "exception_type",
     "error",
 )
-
 
 class JsonFormatter(logging.Formatter):
     def format(self, record):

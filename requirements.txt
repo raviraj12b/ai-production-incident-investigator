@@ -1,0 +1,3 @@
+fastapi[standard]
+httpx2
+pytest

@@ -1,9 +1,12 @@
 from fastapi import FastAPI
+
 import httpx
 
-from fastapi import FastAPI, HTTPException
-
+from fastapi import FastAPI, HTTPException, Request
 from backend.dependency_client import fetch_dependency_data
+
+from telemetry.logging_config import configure_logging
+from telemetry.request_logging import add_request_logging
 
 
 app = FastAPI(
@@ -12,6 +15,12 @@ app = FastAPI(
     version="0.1.0",
 )
 
+configure_logging()
+
+add_request_logging(
+    app,
+    service_name="incident-demo-api",
+)
 
 @app.get("/")
 def root():
@@ -29,9 +38,11 @@ def health_check():
     }
 
 @app.get("/inventory")
-async def get_inventory():
+async def get_inventory(request: Request):
     try:
-        dependency_response = await fetch_dependency_data()
+        dependency_response = await fetch_dependency_data(
+    request.state.request_id
+)
 
         return {
             "status": "success",

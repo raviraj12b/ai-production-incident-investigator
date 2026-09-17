@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from telemetry.logging_config import configure_logging
+from telemetry.request_logging import add_request_logging
 
 app = FastAPI(
     title="Dependency Service",
@@ -7,6 +9,12 @@ app = FastAPI(
     version="0.1.0",
 )
 
+configure_logging()
+
+add_request_logging(
+    app,
+    service_name="dependency-service",
+)
 
 @app.get("/")
 def root():

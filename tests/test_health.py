@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 
+import backend.main as main_module
 from backend.main import app
 
-import backend.main as main_module
 
 client = TestClient(app)
 
@@ -16,9 +16,15 @@ def test_health_check():
         "service": "incident-demo-api"
     }
 
+    # Verify middleware generated a request ID
+    assert "x-request-id" in response.headers
+
+
 def test_inventory(monkeypatch):
 
-    async def fake_fetch_dependency_data():
+    async def fake_fetch_dependency_data(request_id):
+        assert request_id
+
         return {
             "status": "success",
             "data": {
@@ -36,6 +42,9 @@ def test_inventory(monkeypatch):
     response = client.get("/inventory")
 
     assert response.status_code == 200
+
+    # Verify middleware generated a request ID
+    assert "x-request-id" in response.headers
 
     assert response.json() == {
         "status": "success",

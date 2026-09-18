@@ -1,4 +1,5 @@
 import os
+import logging
 
 from fastapi import FastAPI
 
@@ -6,6 +7,9 @@ from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
     OTLPSpanExporter,
 )
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.sdk.resources import Resource
@@ -53,6 +57,15 @@ def configure_tracing(
     )
 
     trace.set_tracer_provider(provider)
+
+    # The original debug Collector config has no logs pipeline. Enable logs
+    # only when the queryable Collector configuration is running.
+    if os.getenv("OTEL_LOGS_ENABLED", "false").lower() == "true":
+        log_provider = LoggerProvider(resource=resource)
+        log_provider.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter(
+            endpoint=os.getenv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "http://127.0.0.1:4318/v1/logs"),
+        )))
+        logging.getLogger().addHandler(LoggingHandler(level=logging.INFO, logger_provider=log_provider))
 
     FastAPIInstrumentor.instrument_app(app)
 

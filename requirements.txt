@@ -4,6 +4,7 @@ pytest
 SQLAlchemy>=2.0,<2.1
 alembic>=1.13,<2
 psycopg[binary]>=3.2,<4
+prometheus-client>=0.20,<1
 opentelemetry-api==1.44.0
 opentelemetry-sdk==1.44.0
 opentelemetry-instrumentation-fastapi==0.65b0

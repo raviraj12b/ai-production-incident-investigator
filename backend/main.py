@@ -13,6 +13,7 @@ from backend.dependency_client import fetch_dependency_data
 from backend.incidents import router as incidents_router
 from backend.investigations import router as investigations_router
 from telemetry.logging_config import configure_logging
+from telemetry.metrics import add_metrics
 from telemetry.request_logging import add_request_logging
 from telemetry.tracing import configure_tracing
 
@@ -73,6 +74,7 @@ add_request_logging(
     app,
     service_name="incident-demo-api",
 )
+add_metrics(app, "incident-demo-api")
 
 configure_tracing(
     app,

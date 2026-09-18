@@ -3,15 +3,11 @@ import time
 
 import httpx
 
+from backend.config import get_settings
+
 
 SERVICE_NAME = "incident-demo-api"
 DEPENDENCY_SERVICE_NAME = "dependency-service"
-
-DEPENDENCY_BASE_URL = "http://127.0.0.1:8001"
-DEPENDENCY_DATA_URL = f"{DEPENDENCY_BASE_URL}/data"
-
-REQUEST_TIMEOUT_SECONDS = 2.0
-
 
 logger = logging.getLogger(
     f"{SERVICE_NAME}.dependencies"
@@ -21,6 +17,8 @@ logger = logging.getLogger(
 async def fetch_dependency_data(
     request_id: str,
 ):
+    settings = get_settings()
+    dependency_data_url = f"{settings.dependency_base_url}/data"
     start_time = time.perf_counter()
 
     logger.info(
@@ -30,17 +28,16 @@ async def fetch_dependency_data(
             "event": "dependency_call_started",
             "request_id": request_id,
             "downstream_service": DEPENDENCY_SERVICE_NAME,
-            "dependency_url": DEPENDENCY_DATA_URL,
+            "dependency_url": dependency_data_url,
         },
     )
 
     try:
         async with httpx.AsyncClient(
-            timeout=REQUEST_TIMEOUT_SECONDS
+            timeout=settings.dependency_timeout_seconds
         ) as client:
-
             response = await client.get(
-                DEPENDENCY_DATA_URL,
+                dependency_data_url,
                 headers={
                     "X-Request-ID": request_id,
                 },
@@ -60,7 +57,7 @@ async def fetch_dependency_data(
                 "event": "dependency_call_failed",
                 "request_id": request_id,
                 "downstream_service": DEPENDENCY_SERVICE_NAME,
-                "dependency_url": DEPENDENCY_DATA_URL,
+                "dependency_url": dependency_data_url,
                 "duration_ms": round(duration_ms, 2),
                 "exception_type": type(exc).__name__,
                 "error": str(exc),
@@ -81,7 +78,7 @@ async def fetch_dependency_data(
                 "event": "dependency_call_failed",
                 "request_id": request_id,
                 "downstream_service": DEPENDENCY_SERVICE_NAME,
-                "dependency_url": DEPENDENCY_DATA_URL,
+                "dependency_url": dependency_data_url,
                 "status_code": exc.response.status_code,
                 "duration_ms": round(duration_ms, 2),
                 "exception_type": type(exc).__name__,
@@ -103,7 +100,7 @@ async def fetch_dependency_data(
                 "event": "dependency_call_failed",
                 "request_id": request_id,
                 "downstream_service": DEPENDENCY_SERVICE_NAME,
-                "dependency_url": DEPENDENCY_DATA_URL,
+                "dependency_url": dependency_data_url,
                 "duration_ms": round(duration_ms, 2),
                 "exception_type": type(exc).__name__,
                 "error": str(exc),
@@ -123,7 +120,7 @@ async def fetch_dependency_data(
             "event": "dependency_call_completed",
             "request_id": request_id,
             "downstream_service": DEPENDENCY_SERVICE_NAME,
-            "dependency_url": DEPENDENCY_DATA_URL,
+            "dependency_url": dependency_data_url,
             "status_code": response.status_code,
             "duration_ms": round(duration_ms, 2),
         },

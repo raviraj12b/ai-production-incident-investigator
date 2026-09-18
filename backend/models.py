@@ -75,6 +75,18 @@ class InvestigationJob(Base):
     )
 
 
+class InvestigationRequest(Base):
+    """Deduplicates a request within one incident without reusing incident IDs."""
+
+    __tablename__ = "investigation_requests"
+    incident_id: Mapped[str] = mapped_column(ForeignKey("incidents.id"), primary_key=True)
+    key: Mapped[str] = mapped_column(String(200), primary_key=True)
+    payload_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    investigation_id: Mapped[str] = mapped_column(
+        ForeignKey("investigations.id"), nullable=False, unique=True
+    )
+
+
 class Evidence(Base):
     __tablename__ = "evidence"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)

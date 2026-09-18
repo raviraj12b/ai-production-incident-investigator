@@ -1,4 +1,4 @@
-# Phase 05 backend status
+# Phase 05 backend status (05.6 queue groundwork)
 
 ## Baseline reconciled
 
@@ -23,31 +23,39 @@ request logging, and tracing entry points were kept.
   timezone-aware UTC windows, transactional `Idempotency-Key`, audit rows,
   standard product API error envelopes, and a `Location` header.
 - Isolated API tests for idempotency, audit, validation, and read/update paths.
+- Migration `phase05_0002` adds investigation request idempotency without
+  changing the existing incident idempotency table.
+- `POST /api/v1/incidents/{id}/investigations` returns `202 Accepted` and
+  atomically persists the investigation, job, request record, and audit event.
+  GET endpoints expose status and attempts. A second active job is rejected.
+- `backend/jobs.py` provides PostgreSQL `FOR UPDATE SKIP LOCKED` claims,
+  expiring leases, fenced renewal, and up to three attempts. The worker
+  processor and report completion path are not connected yet.
 
-## Verification actually performed in this environment
+## Verification
 
-- Python `compileall` passed for source, migration, and tests.
-- Pydantic 2.13.5 accepted a valid aware time window and rejected naive and
-  reversed windows.
-- A structural source check found the same ten table names in the ORM and the
-  initial migration.
+- The project owner reported that the previous eight tests passed, migration
+  `phase05_0001` ran, `/ready`, `/health`, and `/inventory` returned 200, and
+  an incident POST replay returned the same ID on the development machine.
+- This environment cannot run the new API/worker tests or the PostgreSQL
+  migration. Run `python -m pytest -q`, then `python -m alembic upgrade head`
+  and `python -m alembic current` on the development machine. The revision
+  must be `phase05_0002` for `/ready` to return 200.
 
-Runtime tests, a migration against PostgreSQL, and an OpenTelemetry regression
-check were **not run**. This environment lacks FastAPI, httpx, SQLAlchemy,
-Alembic, psycopg, pytest, and a PostgreSQL server, and package installation
-could not reach an index. The presence of test source does not establish that
-these tests pass. Run `python -m pytest -q` and `python -m alembic upgrade head`
-on the development machine, then verify `/ready`, `/health`, and `/inventory`.
+The SQLite test for lease transitions does not establish PostgreSQL concurrent
+claim safety. Add a PostgreSQL integration test with two workers before
+claiming that guarantee is verified.
 
 ## Remaining Phase 05 work
 
-1. Verify this slice against a real PostgreSQL instance and fix any failures.
-2. Add the investigation create/read/status API and a PostgreSQL-backed worker
-   with an explicit lease and crash recovery policy.
-3. Connect read-only logs/traces/metrics query adapters to an actual queryable
+1. Run the new tests and migration against the development PostgreSQL instance;
+   verify 202/replay/409/status responses.
+2. Connect read-only logs/traces/metrics query adapters to an actual queryable
    telemetry backend. The existing debug exporter is insufficient.
-4. Normalize and redact bounded evidence with provenance; implement the
+3. Normalize and redact bounded evidence with provenance; implement the
    deterministic correlations and contradiction/missing-evidence logic.
+4. Connect the worker processor and report completion transition once evidence
+   validation exists; retain lease fencing around all state changes.
 5. Add the bounded single-investigator model adapter, report/review endpoints,
    and audit transitions. Keep AI tool access structured and read-only.
 6. Complete integration, failure, and provenance acceptance tests before

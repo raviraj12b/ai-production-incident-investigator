@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 05.1–05.5 (foundation and incident intake)**.
+Development snapshot through **Phase 05.6 (investigation queue groundwork)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -18,12 +18,14 @@ This repository contains a small production-like FastAPI system used to generate
 - PostgreSQL product schema and versioned Alembic migration
 - Manual incident intake API with transactional idempotency and audit events
 - Database readiness check; existing `/health` still checks the demo process
+- `202 Accepted` investigation creation, idempotent retries, and status reads
+- PostgreSQL-backed job claims with expiry, lease renewal, and bounded retries
 
-The existing simulator is separate from the product schema. Investigation jobs,
-evidence, hypotheses, reports, and reviews have schema definitions but do not
-yet have executable investigation APIs or telemetry query adapters. In
-particular, the current Collector `debug` exporter is **not a queryable telemetry
-store**. Do not claim that the AI investigator works from this snapshot.
+The existing simulator is separate from the product schema. Jobs can be queued,
+claimed, renewed, and failed by the worker primitives in `backend/jobs.py`, but
+there is **no production worker command or investigation processor yet**. A
+queued job has not collected telemetry or produced a report. The current
+Collector `debug` exporter is **not a queryable telemetry store**.
 
 ## Set up the product database
 
@@ -49,7 +51,7 @@ python -m uvicorn backend.main:app --port 8000
 ```
 
 `GET /ready` returns 200 only when the database is reachable and at migration
-`phase05_0001`. Without `DATABASE_URL`, the original demo routes still start;
+`phase05_0002`. Without `DATABASE_URL`, the original demo routes still start;
 product routes return 503 and `/ready` returns 503. Database tables are never
 created automatically at startup.
 
@@ -67,6 +69,21 @@ or severity. Incident closure is reserved for a later review workflow. In this
 snapshot `actor="api"` records the channel, since authentication and a verified
 human identity are not implemented.
 
+Create a job by posting `{}` or a `focus` to the nested endpoint, with a new
+`Idempotency-Key` for each intended investigation:
+
+```bash
+curl -i -X POST http://127.0.0.1:8000/api/v1/incidents/INCIDENT_ID/investigations \
+  -H 'Content-Type: application/json' -H 'Idempotency-Key: investigation-001' \
+  -d '{"focus":"Inventory dependency errors"}'
+curl -i http://127.0.0.1:8000/api/v1/investigations/INVESTIGATION_ID
+```
+
+Replace the IDs with values returned by the API. The POST returns 202 and a
+`Location` header. A retry with the same key and body returns the same ID;
+another key while an investigation is queued or running returns 409. The job
+stays `QUEUED` until a processor is connected in the next backend slices.
+
 ## Runtime ports
 
 - Main API: `8000`
@@ -78,6 +95,12 @@ human identity are not implemented.
 ```bash
 python -m pytest -q
 ```
+
+The eight tests for the earlier foundation were reported passing on the
+development machine. The two new 05.6 tests need to be run there. After this
+update, run `python -m alembic upgrade head` against the existing database and
+check `python -m alembic current` reports `phase05_0002` before checking
+`/ready`.
 
 ## Run OpenTelemetry Collector
 

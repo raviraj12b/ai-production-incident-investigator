@@ -1,14 +1,17 @@
-"""Incident intake invariants; SQLite is used only as an isolated API test DB."""
+"""API and state-machine checks; PostgreSQL locking needs an integration test."""
+
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from backend.database import Base, get_session
+from backend.jobs import claim_next_job, fail_claim, renew_lease
 from backend.main import app
-from backend.models import AuditEvent, Incident
+from backend.models import AuditEvent, Incident, Investigation, InvestigationJob
 
 
 @pytest.fixture
@@ -88,3 +91,73 @@ def test_validation_and_update(api):
         assert sorted(a.action for a in session.scalars(select(AuditEvent)).all()) == [
             "INCIDENT_CREATED", "INCIDENT_UPDATED",
         ]
+
+
+def test_investigation_request_is_atomic_and_idempotent(api):
+    client, engine = api
+    incident_id = client.post(
+        "/api/v1/incidents", json=PAYLOAD,
+        headers={"Idempotency-Key": "incident-for-investigation"},
+    ).json()["id"]
+    url = f"/api/v1/incidents/{incident_id}/investigations"
+    headers = {"Idempotency-Key": "first-run"}
+    first = client.post(url, json={"focus": "Inventory latency"}, headers=headers)
+    assert first.status_code == 202, first.text
+    investigation_id = first.json()["id"]
+    assert first.json()["status"] == "QUEUED"
+    assert first.json()["job"] == {"status": "QUEUED", "attempts": 0}
+    assert first.headers["location"] == f"/api/v1/investigations/{investigation_id}"
+
+    replay = client.post(url, json={"focus": "Inventory latency"}, headers=headers)
+    assert replay.status_code == 202
+    assert replay.json()["id"] == investigation_id
+    conflict = client.post(url, json={"focus": "Different"}, headers=headers)
+    assert conflict.status_code == 409
+    another_run = client.post(url, json={}, headers={"Idempotency-Key": "another-run"})
+    assert another_run.status_code == 409
+    assert client.get(f"/api/v1/investigations/{investigation_id}").status_code == 200
+    assert len(client.get(url).json()) == 1
+    assert client.post(url, json={}, headers={}).status_code == 422
+    assert client.post("/api/v1/incidents/unknown/investigations", json={}, headers=headers).status_code == 404
+
+    with Session(engine) as session:
+        assert len(session.scalars(select(Investigation)).all()) == 1
+        assert len(session.scalars(select(InvestigationJob)).all()) == 1
+        actions = [a.action for a in session.scalars(select(AuditEvent)).all()]
+        assert actions.count("INVESTIGATION_QUEUED") == 1
+
+
+def test_worker_lease_fences_stale_claim_and_limits_retries(api):
+    client, engine = api
+    incident_id = client.post(
+        "/api/v1/incidents", json=PAYLOAD,
+        headers={"Idempotency-Key": "worker-incident"},
+    ).json()["id"]
+    url = f"/api/v1/incidents/{incident_id}/investigations"
+    investigation_id = client.post(
+        url, json={}, headers={"Idempotency-Key": "worker-run"},
+    ).json()["id"]
+    factory = sessionmaker(bind=engine, expire_on_commit=False)
+    start = datetime.now(timezone.utc) + timedelta(seconds=1)
+
+    claim1 = claim_next_job(factory, "worker-a", now=start)
+    assert claim1.investigation_id == investigation_id
+    assert claim1.attempt == 1
+    assert claim_next_job(factory, "worker-b", now=start) is None
+
+    reclaimed_at = start + timedelta(seconds=301)
+    claim2 = claim_next_job(factory, "worker-b", now=reclaimed_at)
+    assert claim2.attempt == 2
+    assert renew_lease(factory, claim1, now=reclaimed_at) is False
+    assert fail_claim(factory, claim1, now=reclaimed_at) is False
+    assert renew_lease(factory, claim2, now=reclaimed_at) is True
+    assert fail_claim(factory, claim2, now=reclaimed_at) is True
+
+    assert claim_next_job(factory, "worker-c", now=reclaimed_at) is None
+    claim3 = claim_next_job(factory, "worker-c", now=reclaimed_at + timedelta(seconds=31))
+    assert claim3.attempt == 3
+    assert fail_claim(factory, claim3, now=reclaimed_at + timedelta(seconds=31)) is True
+    assert claim_next_job(factory, "worker-d", now=reclaimed_at + timedelta(seconds=400)) is None
+    result = client.get(f"/api/v1/investigations/{investigation_id}").json()
+    assert result["status"] == "FAILED"
+    assert result["job"] == {"status": "FAILED", "attempts": 3}

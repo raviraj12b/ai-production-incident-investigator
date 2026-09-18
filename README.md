@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 05.6 (investigation queue groundwork)**.
+Development snapshot through **Phase 05.7 (telemetry gateway groundwork)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -26,6 +26,12 @@ claimed, renewed, and failed by the worker primitives in `backend/jobs.py`, but
 there is **no production worker command or investigation processor yet**. A
 queued job has not collected telemetry or produced a report. The current
 Collector `debug` exporter is **not a queryable telemetry store**.
+
+Phase 05.7 adds bounded internal telemetry reads and a separate optional
+Collector configuration for Loki logs and Jaeger traces. Both services expose
+Prometheus metrics. For Windows setup and verification, see
+[`docs/phase-05-7-telemetry.md`](docs/phase-05-7-telemetry.md). These reads are
+not yet connected to an investigation worker.
 
 ## Set up the product database
 
@@ -96,11 +102,9 @@ stays `QUEUED` until a processor is connected in the next backend slices.
 python -m pytest -q
 ```
 
-The eight tests for the earlier foundation were reported passing on the
-development machine. The two new 05.6 tests need to be run there. After this
-update, run `python -m alembic upgrade head` against the existing database and
-check `python -m alembic current` reports `phase05_0002` before checking
-`/ready`.
+The project owner reported ten tests passing after Phase 05.6. Run the new
+telemetry gateway tests as part of the full suite. There is no new migration:
+`python -m alembic current` should still report `phase05_0002` for `/ready`.
 
 ## Run OpenTelemetry Collector
 

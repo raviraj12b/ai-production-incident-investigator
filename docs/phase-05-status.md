@@ -1,4 +1,4 @@
-# Phase 05 backend status (05.6 queue groundwork)
+# Phase 05 backend status (05.7 telemetry gateway groundwork)
 
 ## Baseline reconciled
 
@@ -31,16 +31,23 @@ request logging, and tracing entry points were kept.
 - `backend/jobs.py` provides PostgreSQL `FOR UPDATE SKIP LOCKED` claims,
   expiring leases, fenced renewal, and up to three attempts. The worker
   processor and report completion path are not connected yet.
+- Phase 05.7 adds a bounded internal telemetry gateway for Loki logs,
+  Prometheus request/error rate, and Jaeger trace search/detail, together with
+  OTLP log export, a queryable Collector config, and `/metrics` on both services.
+  No worker invokes this gateway yet; see `docs/phase-05-7-telemetry.md`.
 
 ## Verification
 
 - The project owner reported that the previous eight tests passed, migration
   `phase05_0001` ran, `/ready`, `/health`, and `/inventory` returned 200, and
   an incident POST replay returned the same ID on the development machine.
-- This environment cannot run the new API/worker tests or the PostgreSQL
-  migration. Run `python -m pytest -q`, then `python -m alembic upgrade head`
-  and `python -m alembic current` on the development machine. The revision
-  must be `phase05_0002` for `/ready` to return 200.
+- This environment has no project Python dependencies, so it cannot run the
+  tests or PostgreSQL migration. Run `python -m pip install -r requirements.txt`
+  and `python -m pytest -q` on the development machine. The revision remains
+  `phase05_0002` and `/ready` should return 200.
+- The project owner reported ten tests passing and `/ready` returning 200
+  after 05.6. The new gateway tests, backend connectivity, and binaries must
+  still be checked on the development machine.
 
 The SQLite test for lease transitions does not establish PostgreSQL concurrent
 claim safety. Add a PostgreSQL integration test with two workers before
@@ -48,10 +55,9 @@ claiming that guarantee is verified.
 
 ## Remaining Phase 05 work
 
-1. Run the new tests and migration against the development PostgreSQL instance;
-   verify 202/replay/409/status responses.
-2. Connect read-only logs/traces/metrics query adapters to an actual queryable
-   telemetry backend. The existing debug exporter is insufficient.
+1. Run the new tests and connect the optional local Loki, Prometheus, and
+   Jaeger backends; verify the gateway with generated traffic.
+2. Add a PostgreSQL two-worker concurrency test to verify claim safety.
 3. Normalize and redact bounded evidence with provenance; implement the
    deterministic correlations and contradiction/missing-evidence logic.
 4. Connect the worker processor and report completion transition once evidence

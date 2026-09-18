@@ -48,3 +48,28 @@ class IncidentOut(BaseModel):
     window_end: datetime
     created_at: datetime
     updated_at: datetime
+
+
+class InvestigationCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    focus: str | None = Field(default=None, min_length=1, max_length=500)
+
+
+class JobOut(BaseModel):
+    status: str
+    attempts: int
+
+
+class InvestigationOut(BaseModel):
+    id: str
+    incident_id: str
+    parent_id: str | None
+    status: str
+    focus: str | None
+    window_start: datetime
+    window_end: datetime
+    created_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
+    error: str | None
+    job: JobOut

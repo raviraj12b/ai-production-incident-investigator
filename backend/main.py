@@ -11,6 +11,7 @@ from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from backend.database import session_factory
 from backend.dependency_client import fetch_dependency_data
 from backend.incidents import router as incidents_router
+from backend.investigations import router as investigations_router
 from telemetry.logging_config import configure_logging
 from telemetry.request_logging import add_request_logging
 from telemetry.tracing import configure_tracing
@@ -32,6 +33,7 @@ app = FastAPI(
 )
 
 app.include_router(incidents_router)
+app.include_router(investigations_router)
 logger = logging.getLogger("incident-demo-api.product")
 
 
@@ -101,7 +103,7 @@ def readiness():
         engine = session_factory().kw["bind"]
         with engine.connect() as connection:
             version = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-        if version != "phase05_0001":
+        if version != "phase05_0002":
             raise RuntimeError("Database migration is not at the expected revision")
     except (RuntimeError, SQLAlchemyError) as exc:
         raise HTTPException(status_code=503, detail="Product database is not ready") from exc

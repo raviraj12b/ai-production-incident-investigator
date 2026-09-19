@@ -1,4 +1,4 @@
-# Phase 05 backend status (05.7 telemetry gateway groundwork)
+# Phase 05 backend status (05.8 evidence capture groundwork)
 
 ## Baseline reconciled
 
@@ -35,6 +35,10 @@ request logging, and tracing entry points were kept.
   Prometheus request/error rate, and Jaeger trace search/detail, together with
   OTLP log export, a queryable Collector config, and `/metrics` on both services.
   No worker invokes this gateway yet; see `docs/phase-05-7-telemetry.md`.
+- Phase 05.8 adds bounded, redacted evidence drafts, trace-ID correlation,
+  explicit missing-signal gaps, and transactional persistence while a job
+  claim remains valid. A read-only API lists saved evidence. No worker loop or
+  report generation is connected; see `docs/phase-05-8-evidence.md`.
 
 ## Verification
 
@@ -45,9 +49,9 @@ request logging, and tracing entry points were kept.
   tests or PostgreSQL migration. Run `python -m pip install -r requirements.txt`
   and `python -m pytest -q` on the development machine. The revision remains
   `phase05_0002` and `/ready` should return 200.
-- The project owner reported ten tests passing and `/ready` returning 200
-  after 05.6. The new gateway tests, backend connectivity, and binaries must
-  still be checked on the development machine.
+- The project owner reported 16 tests passing after 05.7. The four new
+  evidence tests must be run on the development machine. Live connectivity to
+  Loki, Prometheus, and Jaeger has not been independently verified here.
 
 The SQLite test for lease transitions does not establish PostgreSQL concurrent
 claim safety. Add a PostgreSQL integration test with two workers before
@@ -55,15 +59,15 @@ claiming that guarantee is verified.
 
 ## Remaining Phase 05 work
 
-1. Run the new tests and connect the optional local Loki, Prometheus, and
-   Jaeger backends; verify the gateway with generated traffic.
+1. Run the new evidence tests and verify the local Loki, Prometheus, and
+   Jaeger gateway with generated traffic if it has not been checked already.
 2. Add a PostgreSQL two-worker concurrency test to verify claim safety.
-3. Normalize and redact bounded evidence with provenance; implement the
-   deterministic correlations and contradiction/missing-evidence logic.
-4. Connect the worker processor and report completion transition once evidence
-   validation exists; retain lease fencing around all state changes.
-5. Add the bounded single-investigator model adapter, report/review endpoints,
+3. Connect the worker processor and report completion transition after the
+   evidence, hypothesis, and report validation paths exist. Continue to fence
+   every write with the lease. More detailed contradiction analysis awaits
+   comparable signals and change/deployment evidence.
+4. Add the bounded single-investigator model adapter, report/review endpoints,
    and audit transitions. Keep AI tool access structured and read-only.
-6. Complete integration, failure, and provenance acceptance tests before
+5. Complete integration, failure, and provenance acceptance tests before
    declaring Phase 05 complete. Authentication and an actual reviewer identity
    are still missing; the present audit actor is the channel label `api`.

@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 05.7 (telemetry gateway groundwork)**.
+Development snapshot through **Phase 05.8 (evidence capture groundwork)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -23,15 +23,21 @@ This repository contains a small production-like FastAPI system used to generate
 
 The existing simulator is separate from the product schema. Jobs can be queued,
 claimed, renewed, and failed by the worker primitives in `backend/jobs.py`, but
-there is **no production worker command or investigation processor yet**. A
-queued job has not collected telemetry or produced a report. The current
+there is **no production worker command or report processor yet**. A
+queued job has not collected telemetry or produced a report. The original
 Collector `debug` exporter is **not a queryable telemetry store**.
 
 Phase 05.7 adds bounded internal telemetry reads and a separate optional
 Collector configuration for Loki logs and Jaeger traces. Both services expose
 Prometheus metrics. For Windows setup and verification, see
-[`docs/phase-05-7-telemetry.md`](docs/phase-05-7-telemetry.md). These reads are
-not yet connected to an investigation worker.
+[`docs/phase-05-7-telemetry.md`](docs/phase-05-7-telemetry.md). Evidence capture
+can call these reads after claiming a job; no worker starts this automatically.
+
+Phase 05.8 adds evidence normalization, conservative redaction, trace-ID
+correlation, and lease-fenced persistence for a claimed job. The read-only
+`GET /api/v1/investigations/{id}/evidence` endpoint returns stored summaries;
+see [`docs/phase-05-8-evidence.md`](docs/phase-05-8-evidence.md). No worker loop
+is running, so existing investigations remain queued until a later slice.
 
 ## Set up the product database
 
@@ -102,8 +108,8 @@ stays `QUEUED` until a processor is connected in the next backend slices.
 python -m pytest -q
 ```
 
-The project owner reported ten tests passing after Phase 05.6. Run the new
-telemetry gateway tests as part of the full suite. There is no new migration:
+The project owner reported 16 tests passing after Phase 05.7. Run the new
+evidence pipeline tests as part of the full suite. There is no new migration:
 `python -m alembic current` should still report `phase05_0002` for `/ready`.
 
 ## Run OpenTelemetry Collector

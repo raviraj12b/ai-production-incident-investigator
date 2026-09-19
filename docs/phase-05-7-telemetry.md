@@ -6,7 +6,8 @@ explicit service, timezone-aware window of at most 24 hours, and a limit of
 1–100. The adapters construct Loki LogQL, Prometheus PromQL, and Jaeger v3
 queries; callers cannot supply backend query text. HTTP reads have a five-second
 timeout and a two-megabyte response cap. Returned records have source fields,
-but evidence redaction and database persistence belong to Phase 05.8.
+Evidence redaction and database persistence are described separately in
+[`phase-05-8-evidence.md`](phase-05-8-evidence.md).
 
 The two FastAPI processes expose `/metrics` for Prometheus scraping. With
 `OTEL_ENABLED=true` and `OTEL_LOGS_ENABLED=true`, they also export Python logs

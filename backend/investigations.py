@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_session
 from backend.models import (
-    AuditEvent, Incident, Investigation, InvestigationJob, InvestigationRequest,
+    AuditEvent, Evidence, Incident, Investigation, InvestigationJob, InvestigationRequest,
 )
-from backend.schemas import InvestigationCreate, InvestigationOut, JobOut
+from backend.schemas import EvidenceOut, InvestigationCreate, InvestigationOut, JobOut
 
 
 router = APIRouter(tags=["investigations"])
@@ -96,6 +96,22 @@ def get_investigation(investigation_id: str, session: DbSession):
     if investigation is None:
         raise HTTPException(status_code=404, detail="Investigation not found")
     return investigation_out(session, investigation)
+
+
+@router.get("/api/v1/investigations/{investigation_id}/evidence", response_model=list[EvidenceOut])
+def list_evidence(
+    investigation_id: str, session: DbSession,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+):
+    if session.get(Investigation, investigation_id) is None:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+    return session.scalars(
+        select(Evidence)
+        .where(Evidence.investigation_id == investigation_id)
+        .order_by(Evidence.observed_at, Evidence.id)
+        .limit(limit).offset(offset)
+    ).all()
 
 
 @router.get(

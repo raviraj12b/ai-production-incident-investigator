@@ -73,3 +73,17 @@ class InvestigationOut(BaseModel):
     finished_at: datetime | None
     error: str | None
     job: JobOut
+
+
+class EvidenceOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    investigation_id: str
+    kind: Literal["LOG", "TRACE", "METRIC", "CHANGE"]
+    observed_at: datetime
+    service: str
+    summary: str
+    source_backend: str
+    source_ref: str
+    trace_id: str | None
+    captured_at: datetime

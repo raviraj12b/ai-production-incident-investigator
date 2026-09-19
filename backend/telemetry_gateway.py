@@ -142,6 +142,8 @@ class TelemetryGateway:
                         "timestamp_ns": str(timestamp), "service": query.service,
                         "message": str(entry.get("message", line))[:2000],
                         "level": entry.get("level", metadata.get("severity_text")),
+                        "event": entry.get("event", metadata.get("event")),
+                        "status_code": entry.get("status_code", metadata.get("status_code")),
                         "trace_id": entry.get("trace_id", metadata.get("trace_id")),
                         "request_id": entry.get("request_id", metadata.get("request_id")),
                         "source": "loki", "reference": str(timestamp),

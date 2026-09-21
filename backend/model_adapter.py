@@ -17,7 +17,7 @@ from backend.telemetry_gateway import SERVICE_RE
 
 
 API_URL = "https://api.groq.com/openai/v1/chat/completions"
-DEFAULT_MODEL = "openai/gpt-oss-120b"
+DEFAULT_MODEL = "openai/gpt-oss-20b"
 MAX_INPUT_BYTES = 48_000
 MAX_RESPONSE_BYTES = 64_000
 ID_RE = re.compile(r"[0-9a-f-]{36}\Z")

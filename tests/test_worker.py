@@ -194,7 +194,7 @@ def test_groq_default_model_needs_only_a_groq_key(monkeypatch):
     monkeypatch.setenv("GROQ_API_KEY", "fake-key")
     monkeypatch.delenv("GROQ_MODEL", raising=False)
     with GroqAnalyzer.from_environment() as analyzer:
-        assert analyzer.model == DEFAULT_MODEL == "openai/gpt-oss-120b"
+        assert analyzer.model == DEFAULT_MODEL == "openai/gpt-oss-20b"
 
 
 def test_groq_adapter_sends_only_bounded_normalized_data_and_handles_refusal():

@@ -6,7 +6,7 @@ telemetry backends are ready. `--once` takes at most one job; `--poll` watches
 for more jobs every five seconds until Ctrl+C. Both use the existing
 PostgreSQL lease and three-attempt retry limit. The worker requires a database
 at revision `phase05_0002` and `GROQ_API_KEY` **before claiming a job**.
-`GROQ_MODEL` is optional and defaults to `openai/gpt-oss-120b` served by Groq;
+`GROQ_MODEL` is optional and defaults to `openai/gpt-oss-20b` served by Groq;
 this model ID does not call the OpenAI API. It does not use a model embedded
 in the FastAPI server.
 

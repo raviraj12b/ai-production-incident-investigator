@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 06.2 (frontend scaffold and design foundation)**.
+Development snapshot through **Phase 06.3 (frontend API contract and test harness)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -21,6 +21,7 @@ This repository contains a small production-like FastAPI system used to generate
 - `202 Accepted` investigation creation, idempotent retries, and status reads
 - PostgreSQL-backed job claims with expiry, lease renewal, and bounded retries
 - React and TypeScript frontend foundation with a responsive evidence-console shell
+- Captured OpenAPI contract, generated frontend types, typed API client, and MSW contract tests
 
 The existing simulator is separate from the product schema. Jobs can be queued,
 claimed, renewed, and failed by the worker primitives in `backend/jobs.py`.
@@ -134,9 +135,11 @@ stays `QUEUED` until you start the standalone worker.
 
 ## Run the frontend foundation
 
-The Phase 06.2 frontend establishes the application shell, routes, design
-tokens, responsive navigation, and frontend quality checks. It intentionally
-does not call the backend until the typed API layer is added in Phase 06.3.
+The Phase 06.3 frontend includes the application shell, routes, design tokens,
+responsive navigation, and a tested typed API boundary. Page components are not
+connected to API data until the Phase 06.4 incident list and intake slice.
+The locked requirements and implementation plan are in
+`docs/phase-06-01-frontend-requirements.md`.
 
 ```bash
 cd frontend

@@ -87,3 +87,25 @@ class EvidenceOut(BaseModel):
     source_ref: str
     trace_id: str | None
     captured_at: datetime
+
+
+class EvidenceLinkOut(BaseModel):
+    evidence_id: str
+    relation: Literal["SUPPORTS", "CONTRADICTS"]
+
+
+class HypothesisOut(BaseModel):
+    id: str
+    explanation: str
+    confidence: Literal["LOW", "MEDIUM", "HIGH"]
+    missing_evidence: list[str]
+    evidence: list[EvidenceLinkOut]
+
+
+class ReportOut(BaseModel):
+    id: str
+    investigation_id: str
+    summary: str
+    uncertainty: str
+    created_at: datetime
+    hypotheses: list[HypothesisOut]

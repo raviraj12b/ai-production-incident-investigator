@@ -53,3 +53,8 @@ Prometheus, and Jaeger ingestion. Use the separate Phase 05.7 Windows guide
 for live backend checks. Avoid manually claiming a real queued job merely to
 test this module: a claim changes its status to RUNNING until processing or
 lease expiry, and this slice has no worker completion path.
+
+Phase 05.9 extends the capture audit with a digest of the normalized evidence
+set. A retry that reads identical rows records a capture for its own attempt
+without replacing those rows. Analysis completion checks this digest and the
+attempt number before saving a report.

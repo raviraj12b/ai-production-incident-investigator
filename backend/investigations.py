@@ -9,9 +9,13 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_session
 from backend.models import (
-    AuditEvent, Evidence, Incident, Investigation, InvestigationJob, InvestigationRequest,
+    AuditEvent, Evidence, Hypothesis, HypothesisEvidence, Incident, Investigation,
+    InvestigationJob, InvestigationRequest, Report,
 )
-from backend.schemas import EvidenceOut, InvestigationCreate, InvestigationOut, JobOut
+from backend.schemas import (
+    EvidenceLinkOut, EvidenceOut, HypothesisOut, InvestigationCreate,
+    InvestigationOut, JobOut, ReportOut,
+)
 
 
 router = APIRouter(tags=["investigations"])
@@ -112,6 +116,34 @@ def list_evidence(
         .order_by(Evidence.observed_at, Evidence.id)
         .limit(limit).offset(offset)
     ).all()
+
+
+@router.get("/api/v1/investigations/{investigation_id}/report", response_model=ReportOut)
+def get_report(investigation_id: str, session: DbSession):
+    if session.get(Investigation, investigation_id) is None:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+    report = session.scalar(select(Report).where(Report.investigation_id == investigation_id))
+    if report is None:
+        raise HTTPException(status_code=404, detail="Report is not available")
+    hypotheses = session.scalars(select(Hypothesis)
+                                  .where(Hypothesis.investigation_id == investigation_id)
+                                  .order_by(Hypothesis.id)).all()
+    findings = []
+    for hypothesis in hypotheses:
+        links = session.scalars(select(HypothesisEvidence)
+                                .where(HypothesisEvidence.hypothesis_id == hypothesis.id)
+                                .order_by(HypothesisEvidence.evidence_id)).all()
+        findings.append(HypothesisOut(
+            id=hypothesis.id, explanation=hypothesis.explanation,
+            confidence=hypothesis.confidence, missing_evidence=hypothesis.missing_evidence,
+            evidence=[EvidenceLinkOut(evidence_id=link.evidence_id, relation=link.relation)
+                      for link in links],
+        ))
+    return ReportOut(
+        id=report.id, investigation_id=investigation_id, summary=report.summary,
+        uncertainty=report.uncertainty, created_at=report.created_at,
+        hypotheses=findings,
+    )
 
 
 @router.get(

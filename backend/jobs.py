@@ -1,7 +1,6 @@
 """PostgreSQL job claims with lease fencing and bounded crash recovery.
 
-This module does not run an investigation. The processor and completion path
-are connected only after evidence collection and report validation exist.
+Processing lives in backend.worker; this module owns only durable job state.
 """
 
 from dataclasses import dataclass
@@ -55,6 +54,7 @@ def _owns_lease(job: InvestigationJob, claim: JobClaim, now: datetime) -> bool:
 
 def claim_next_job(
     factory: sessionmaker[Session], worker_id: str, *, now: datetime | None = None,
+    investigation_id: str | None = None,
 ) -> JobClaim | None:
     """Atomically claim an available job or reclaim a crashed worker's lease."""
     _valid_worker(worker_id)
@@ -62,7 +62,7 @@ def claim_next_job(
 
     while True:
         with factory.begin() as session:
-            job = session.scalar(
+            candidate = (
                 select(InvestigationJob)
                 .where(or_(
                     and_(InvestigationJob.status == "QUEUED", InvestigationJob.available_at <= now),
@@ -73,8 +73,10 @@ def claim_next_job(
                 ))
                 .order_by(InvestigationJob.available_at, InvestigationJob.investigation_id)
                 .limit(1)
-                .with_for_update(skip_locked=True)
             )
+            if investigation_id is not None:
+                candidate = candidate.where(InvestigationJob.investigation_id == investigation_id)
+            job = session.scalar(candidate.with_for_update(skip_locked=True))
             if job is None:
                 return None
 
@@ -135,7 +137,7 @@ def fail_claim(
     reason: str = "PROCESSOR_ERROR", now: datetime | None = None,
 ) -> bool:
     """Retry within the attempt budget; a stale claim cannot change state."""
-    if reason not in {"PROCESSOR_ERROR", "TELEMETRY_UNAVAILABLE", "RESULT_INVALID"}:
+    if reason not in {"PROCESSOR_ERROR", "TELEMETRY_UNAVAILABLE", "MODEL_UNAVAILABLE", "RESULT_INVALID"}:
         raise ValueError("Unsupported public failure reason")
     now = _effective_now(now)
     with factory.begin() as session:

@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 05.8 (evidence capture groundwork)**.
+Development snapshot through **Phase 05.10 (standalone investigation worker)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -22,9 +22,10 @@ This repository contains a small production-like FastAPI system used to generate
 - PostgreSQL-backed job claims with expiry, lease renewal, and bounded retries
 
 The existing simulator is separate from the product schema. Jobs can be queued,
-claimed, renewed, and failed by the worker primitives in `backend/jobs.py`, but
-there is **no production worker command or report processor yet**. A
-queued job has not collected telemetry or produced a report. The original
+claimed, renewed, and failed by the worker primitives in `backend/jobs.py`.
+The standalone worker is **never started by the FastAPI process**. A
+queued job has not collected telemetry or produced a report until the worker
+runs and its telemetry backends are reachable. The original
 Collector `debug` exporter is **not a queryable telemetry store**.
 
 Phase 05.7 adds bounded internal telemetry reads and a separate optional
@@ -36,8 +37,17 @@ can call these reads after claiming a job; no worker starts this automatically.
 Phase 05.8 adds evidence normalization, conservative redaction, trace-ID
 correlation, and lease-fenced persistence for a claimed job. The read-only
 `GET /api/v1/investigations/{id}/evidence` endpoint returns stored summaries;
-see [`docs/phase-05-8-evidence.md`](docs/phase-05-8-evidence.md). No worker loop
-is running, so existing investigations remain queued until a later slice.
+see [`docs/phase-05-8-evidence.md`](docs/phase-05-8-evidence.md).
+
+Phase 05.9 validates cited analysis results and atomically saves a report,
+hypotheses, evidence links, and the `AWAITING_REVIEW` transition for a valid
+worker claim. `GET /api/v1/investigations/{id}/report` reads a saved result;
+see [`docs/phase-05-9-analysis.md`](docs/phase-05-9-analysis.md).
+
+Phase 05.10 connects a separate worker command to the evidence and report
+pipeline. A Groq adapter accepts only normalized, bounded evidence. The
+worker requires `GROQ_API_KEY` and uses `openai/gpt-oss-20b` on Groq by default;
+see [`docs/phase-05-10-worker.md`](docs/phase-05-10-worker.md) before running it.
 
 ## Set up the product database
 
@@ -94,7 +104,7 @@ curl -i http://127.0.0.1:8000/api/v1/investigations/INVESTIGATION_ID
 Replace the IDs with values returned by the API. The POST returns 202 and a
 `Location` header. A retry with the same key and body returns the same ID;
 another key while an investigation is queued or running returns 409. The job
-stays `QUEUED` until a processor is connected in the next backend slices.
+stays `QUEUED` until you start the standalone worker.
 
 ## Runtime ports
 
@@ -108,8 +118,9 @@ stays `QUEUED` until a processor is connected in the next backend slices.
 python -m pytest -q
 ```
 
-The project owner reported 16 tests passing after Phase 05.7. Run the new
-evidence pipeline tests as part of the full suite. There is no new migration:
+The project owner reported 33 tests passing with the initial Phase 05.10
+worker. Run the updated Groq adapter tests as part of the full suite. There
+is no new migration:
 `python -m alembic current` should still report `phase05_0002` for `/ready`.
 
 ## Run OpenTelemetry Collector

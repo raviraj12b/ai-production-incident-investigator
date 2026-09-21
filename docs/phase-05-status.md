@@ -1,4 +1,4 @@
-# Phase 05 backend status (05.8 evidence capture groundwork)
+# Phase 05 backend status (05.10 standalone worker)
 
 ## Baseline reconciled
 
@@ -29,16 +29,22 @@ request logging, and tracing entry points were kept.
   atomically persists the investigation, job, request record, and audit event.
   GET endpoints expose status and attempts. A second active job is rejected.
 - `backend/jobs.py` provides PostgreSQL `FOR UPDATE SKIP LOCKED` claims,
-  expiring leases, fenced renewal, and up to three attempts. The worker
-  processor and report completion path are not connected yet.
+  expiring leases, fenced renewal, and up to three attempts.
 - Phase 05.7 adds a bounded internal telemetry gateway for Loki logs,
   Prometheus request/error rate, and Jaeger trace search/detail, together with
   OTLP log export, a queryable Collector config, and `/metrics` on both services.
-  No worker invokes this gateway yet; see `docs/phase-05-7-telemetry.md`.
+  See `docs/phase-05-7-telemetry.md` for setup and live checks.
 - Phase 05.8 adds bounded, redacted evidence drafts, trace-ID correlation,
   explicit missing-signal gaps, and transactional persistence while a job
-  claim remains valid. A read-only API lists saved evidence. No worker loop or
-  report generation is connected; see `docs/phase-05-8-evidence.md`.
+  claim remains valid. A read-only API lists saved evidence;
+  see `docs/phase-05-8-evidence.md`.
+- Phase 05.9 adds a provider-independent result contract, per-attempt evidence
+  digest, validation of cited hypotheses, an atomic report/job completion path,
+  and a read-only report API; see `docs/phase-05-9-analysis.md`.
+- Phase 05.10 connects an explicitly started worker to the gateway, evidence
+  capture, one bounded structured Groq model request, and validated completion.
+  It also supports a targeted `--once` mode for safer local verification; see
+  `docs/phase-05-10-worker.md`.
 
 ## Verification
 
@@ -49,9 +55,10 @@ request logging, and tracing entry points were kept.
   tests or PostgreSQL migration. Run `python -m pip install -r requirements.txt`
   and `python -m pytest -q` on the development machine. The revision remains
   `phase05_0002` and `/ready` should return 200.
-- The project owner reported 16 tests passing after 05.7. The four new
-  evidence tests must be run on the development machine. Live connectivity to
-  Loki, Prometheus, and Jaeger has not been independently verified here.
+- The project owner reported 33 tests passing and migration `phase05_0002`
+  with the initial 05.10 worker. The revised Groq adapter tests must be run
+  on the development machine. Live connectivity to Loki, Prometheus, and
+  Jaeger has not been independently verified here.
 
 The SQLite test for lease transitions does not establish PostgreSQL concurrent
 claim safety. Add a PostgreSQL integration test with two workers before
@@ -59,15 +66,14 @@ claiming that guarantee is verified.
 
 ## Remaining Phase 05 work
 
-1. Run the new evidence tests and verify the local Loki, Prometheus, and
+1. Run the new worker tests and verify the local Loki, Prometheus, and
    Jaeger gateway with generated traffic if it has not been checked already.
 2. Add a PostgreSQL two-worker concurrency test to verify claim safety.
-3. Connect the worker processor and report completion transition after the
-   evidence, hypothesis, and report validation paths exist. Continue to fence
-   every write with the lease. More detailed contradiction analysis awaits
-   comparable signals and change/deployment evidence.
-4. Add the bounded single-investigator model adapter, report/review endpoints,
-   and audit transitions. Keep AI tool access structured and read-only.
+3. Verify one real worker run with live telemetry and a configured model.
+   Comparable signals and change/deployment evidence are needed for meaningful
+   contradiction analysis.
+4. Add reviewer actions and audit transitions with an actual authenticated
+   reviewer identity before treating approvals as authoritative.
 5. Complete integration, failure, and provenance acceptance tests before
    declaring Phase 05 complete. Authentication and an actual reviewer identity
    are still missing; the present audit actor is the channel label `api`.

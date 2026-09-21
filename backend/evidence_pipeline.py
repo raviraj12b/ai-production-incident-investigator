@@ -5,6 +5,7 @@ database. A future worker owns claim/retry scheduling and report generation.
 """
 
 import hashlib
+import json
 import math
 import re
 from collections import Counter
@@ -130,6 +131,21 @@ def _service(raw: object) -> str:
 def _hash_ref(*values: object) -> str:
     # Only the digest is persisted; log bodies/request IDs may contain secrets.
     return hashlib.sha256(repr(values).encode("utf-8")).hexdigest()[:24]
+
+
+def evidence_digest(records) -> str:
+    """Compare saved normalized rows to the exact set captured by an attempt."""
+    normalized = []
+    for row in records:
+        observed = row.observed_at
+        if observed.tzinfo is None:  # SQLite test database drops timezone metadata.
+            observed = observed.replace(tzinfo=timezone.utc)
+        normalized.append((
+            row.kind, observed.astimezone(timezone.utc).isoformat(), row.service,
+            row.summary, row.source_backend, row.source_ref, row.trace_id,
+        ))
+    payload = json.dumps(sorted(normalized, key=lambda row: json.dumps(row)), separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def _log(row: dict, query: Query) -> EvidenceDraft:
@@ -288,6 +304,23 @@ def save_evidence(
                     row.summary, row.source_backend, row.source_ref, row.trace_id)
 
         if existing and Counter(map(signature, existing)) == Counter(map(signature, batch.records)):
+            # A reclaimed job must record that its *new* attempt checked this
+            # capture; completion is fenced to the current attempt's audit.
+            prior = session.scalar(select(AuditEvent).where(
+                AuditEvent.investigation_id == claim.investigation_id,
+                AuditEvent.action == "EVIDENCE_CAPTURED",
+            ).order_by(AuditEvent.created_at.desc(), AuditEvent.id.desc()).limit(1))
+            digest = evidence_digest(batch.records)
+            if (prior is None or prior.detail.get("attempt") != claim.attempt
+                    or prior.detail.get("evidence_digest") != digest):
+                session.add(AuditEvent(
+                    incident_id=investigation.incident_id,
+                    investigation_id=investigation.id,
+                    action="EVIDENCE_CAPTURED", actor="worker",
+                    detail={"attempt": claim.attempt, "record_count": len(batch.records),
+                            "correlation_count": len(batch.correlations), "gaps": list(batch.gaps),
+                            "evidence_digest": digest},
+                ))
             return True
         linked = session.scalar(select(HypothesisEvidence.evidence_id)
                                 .join(Evidence, Evidence.id == HypothesisEvidence.evidence_id)
@@ -306,7 +339,8 @@ def save_evidence(
             investigation_id=investigation.id,
             action="EVIDENCE_CAPTURED", actor="worker",
             detail={"attempt": claim.attempt, "record_count": len(batch.records),
-                    "correlation_count": len(batch.correlations), "gaps": list(batch.gaps)},
+                    "correlation_count": len(batch.correlations), "gaps": list(batch.gaps),
+                    "evidence_digest": evidence_digest(batch.records)},
         ))
         return True
 

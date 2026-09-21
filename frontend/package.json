@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "generate:api": "openapi-typescript ./src/api/openapi.json -o ./src/api/schema.d.ts && prettier --write ./src/api/schema.d.ts",
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
@@ -40,6 +41,8 @@
     "eslint-plugin-react-refresh": "0.5.7",
     "globals": "17.12.0",
     "jsdom": "30.1.0",
+    "msw": "2.15.0",
+    "openapi-typescript": "7.13.0",
     "prettier": "3.9.8",
     "typescript": "5.9.3",
     "typescript-eslint": "8.70.1",

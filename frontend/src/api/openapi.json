@@ -1,0 +1,786 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Production Incident Investigator - Demo Service",
+    "description": "Production-like service used to generate and investigate incidents.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/incidents": {
+      "post": {
+        "tags": ["incidents"],
+        "summary": "Create Incident",
+        "operationId": "create_incident_api_v1_incidents_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/IncidentCreate" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/IncidentOut" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["incidents"],
+        "summary": "List Incidents",
+        "operationId": "list_incidents_api_v1_incidents_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "default": 0, "title": "Offset" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/IncidentOut" },
+                  "title": "Response List Incidents Api V1 Incidents Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/incidents/{incident_id}": {
+      "get": {
+        "tags": ["incidents"],
+        "summary": "Get Incident",
+        "operationId": "get_incident_api_v1_incidents__incident_id__get",
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Incident Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/IncidentOut" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["incidents"],
+        "summary": "Update Incident",
+        "operationId": "update_incident_api_v1_incidents__incident_id__patch",
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Incident Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/IncidentUpdate" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/IncidentOut" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/incidents/{incident_id}/investigations": {
+      "post": {
+        "tags": ["investigations"],
+        "summary": "Create Investigation",
+        "operationId": "create_investigation_api_v1_incidents__incident_id__investigations_post",
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Incident Id" }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/InvestigationCreate" } }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/InvestigationOut" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["investigations"],
+        "summary": "List Investigations",
+        "operationId": "list_investigations_api_v1_incidents__incident_id__investigations_get",
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Incident Id" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "default": 0, "title": "Offset" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/InvestigationOut" },
+                  "title": "Response List Investigations Api V1 Incidents  Incident Id  Investigations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/investigations/{investigation_id}": {
+      "get": {
+        "tags": ["investigations"],
+        "summary": "Get Investigation",
+        "operationId": "get_investigation_api_v1_investigations__investigation_id__get",
+        "parameters": [
+          {
+            "name": "investigation_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Investigation Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/InvestigationOut" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/investigations/{investigation_id}/evidence": {
+      "get": {
+        "tags": ["investigations"],
+        "summary": "List Evidence",
+        "operationId": "list_evidence_api_v1_investigations__investigation_id__evidence_get",
+        "parameters": [
+          {
+            "name": "investigation_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Investigation Id" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "default": 0, "title": "Offset" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/EvidenceOut" },
+                  "title": "Response List Evidence Api V1 Investigations  Investigation Id  Evidence Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/investigations/{investigation_id}/report": {
+      "get": {
+        "tags": ["investigations"],
+        "summary": "Get Report",
+        "operationId": "get_report_api_v1_investigations__investigation_id__report_get",
+        "parameters": [
+          {
+            "name": "investigation_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Investigation Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ReportOut" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/investigations/{investigation_id}/review": {
+      "put": {
+        "tags": ["investigations"],
+        "summary": "Put Review",
+        "description": "Create the single reviewer decision; exact retries return the same row.",
+        "operationId": "put_review_api_v1_investigations__investigation_id__review_put",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "investigation_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Investigation Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ReviewPut" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ReviewOut" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["investigations"],
+        "summary": "Get Review",
+        "operationId": "get_review_api_v1_investigations__investigation_id__review_get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "investigation_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Investigation Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ReviewOut" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "summary": "Readiness",
+        "operationId": "readiness_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/inventory": {
+      "get": {
+        "summary": "Get Inventory",
+        "operationId": "get_inventory_inventory_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "EvidenceLinkOut": {
+        "properties": {
+          "evidence_id": { "type": "string", "title": "Evidence Id" },
+          "relation": { "type": "string", "enum": ["SUPPORTS", "CONTRADICTS"], "title": "Relation" }
+        },
+        "type": "object",
+        "required": ["evidence_id", "relation"],
+        "title": "EvidenceLinkOut"
+      },
+      "EvidenceOut": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "investigation_id": { "type": "string", "title": "Investigation Id" },
+          "kind": {
+            "type": "string",
+            "enum": ["LOG", "TRACE", "METRIC", "CHANGE"],
+            "title": "Kind"
+          },
+          "observed_at": { "type": "string", "format": "date-time", "title": "Observed At" },
+          "service": { "type": "string", "title": "Service" },
+          "summary": { "type": "string", "title": "Summary" },
+          "source_backend": { "type": "string", "title": "Source Backend" },
+          "source_ref": { "type": "string", "title": "Source Ref" },
+          "trace_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Trace Id" },
+          "captured_at": { "type": "string", "format": "date-time", "title": "Captured At" }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "investigation_id",
+          "kind",
+          "observed_at",
+          "service",
+          "summary",
+          "source_backend",
+          "source_ref",
+          "trace_id",
+          "captured_at"
+        ],
+        "title": "EvidenceOut"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HypothesisOut": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "explanation": { "type": "string", "title": "Explanation" },
+          "confidence": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH"],
+            "title": "Confidence"
+          },
+          "missing_evidence": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Missing Evidence"
+          },
+          "evidence": {
+            "items": { "$ref": "#/components/schemas/EvidenceLinkOut" },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": ["id", "explanation", "confidence", "missing_evidence", "evidence"],
+        "title": "HypothesisOut"
+      },
+      "IncidentCreate": {
+        "properties": {
+          "title": { "type": "string", "maxLength": 200, "minLength": 1, "title": "Title" },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Description",
+            "default": ""
+          },
+          "service": { "type": "string", "maxLength": 120, "minLength": 1, "title": "Service" },
+          "severity": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+            "title": "Severity"
+          },
+          "window_start": { "type": "string", "format": "date-time", "title": "Window Start" },
+          "window_end": { "type": "string", "format": "date-time", "title": "Window End" }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["title", "service", "severity", "window_start", "window_end"],
+        "title": "IncidentCreate"
+      },
+      "IncidentOut": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "title": { "type": "string", "title": "Title" },
+          "description": { "type": "string", "title": "Description" },
+          "service": { "type": "string", "title": "Service" },
+          "severity": { "type": "string", "title": "Severity" },
+          "status": { "type": "string", "title": "Status" },
+          "window_start": { "type": "string", "format": "date-time", "title": "Window Start" },
+          "window_end": { "type": "string", "format": "date-time", "title": "Window End" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "service",
+          "severity",
+          "status",
+          "window_start",
+          "window_end",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "IncidentOut"
+      },
+      "IncidentUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [{ "type": "string", "maxLength": 200, "minLength": 1 }, { "type": "null" }],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [{ "type": "string", "maxLength": 5000 }, { "type": "null" }],
+            "title": "Description"
+          },
+          "severity": {
+            "anyOf": [
+              { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+              { "type": "null" }
+            ],
+            "title": "Severity"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "IncidentUpdate"
+      },
+      "InvestigationCreate": {
+        "properties": {
+          "focus": {
+            "anyOf": [{ "type": "string", "maxLength": 500, "minLength": 1 }, { "type": "null" }],
+            "title": "Focus"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "InvestigationCreate"
+      },
+      "InvestigationOut": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "incident_id": { "type": "string", "title": "Incident Id" },
+          "parent_id": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Parent Id"
+          },
+          "status": { "type": "string", "title": "Status" },
+          "focus": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Focus" },
+          "window_start": { "type": "string", "format": "date-time", "title": "Window Start" },
+          "window_end": { "type": "string", "format": "date-time", "title": "Window End" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "started_at": {
+            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "title": "Finished At"
+          },
+          "error": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Error" },
+          "job": { "$ref": "#/components/schemas/JobOut" }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "incident_id",
+          "parent_id",
+          "status",
+          "focus",
+          "window_start",
+          "window_end",
+          "created_at",
+          "started_at",
+          "finished_at",
+          "error",
+          "job"
+        ],
+        "title": "InvestigationOut"
+      },
+      "JobOut": {
+        "properties": {
+          "status": { "type": "string", "title": "Status" },
+          "attempts": { "type": "integer", "title": "Attempts" }
+        },
+        "type": "object",
+        "required": ["status", "attempts"],
+        "title": "JobOut"
+      },
+      "ReportOut": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "investigation_id": { "type": "string", "title": "Investigation Id" },
+          "summary": { "type": "string", "title": "Summary" },
+          "uncertainty": { "type": "string", "title": "Uncertainty" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "hypotheses": {
+            "items": { "$ref": "#/components/schemas/HypothesisOut" },
+            "type": "array",
+            "title": "Hypotheses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "investigation_id",
+          "summary",
+          "uncertainty",
+          "created_at",
+          "hypotheses"
+        ],
+        "title": "ReportOut"
+      },
+      "ReviewOut": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "investigation_id": { "type": "string", "title": "Investigation Id" },
+          "decision": {
+            "type": "string",
+            "enum": ["ACCEPTED", "REJECTED", "INCONCLUSIVE"],
+            "title": "Decision"
+          },
+          "reviewer": { "type": "string", "title": "Reviewer" },
+          "comment": { "type": "string", "title": "Comment" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "investigation_id", "decision", "reviewer", "comment", "created_at"],
+        "title": "ReviewOut"
+      },
+      "ReviewPut": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": ["ACCEPTED", "REJECTED", "INCONCLUSIVE"],
+            "title": "Decision"
+          },
+          "comment": { "type": "string", "maxLength": 5000, "title": "Comment", "default": "" }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": ["decision"],
+        "title": "ReviewPut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" },
+          "input": { "title": "Input" },
+          "ctx": { "type": "object", "title": "Context" }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": { "HTTPBearer": { "type": "http", "scheme": "bearer" } }
+  }
+}

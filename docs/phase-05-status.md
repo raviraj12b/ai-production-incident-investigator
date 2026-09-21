@@ -1,4 +1,4 @@
-# Phase 05 backend status (05.12 authenticated review)
+# Phase 05 backend status (local checkpoint complete)
 
 ## Baseline reconciled
 
@@ -52,6 +52,10 @@ request logging, and tracing entry points were kept.
   the existing reviews table. It binds the audit actor to server configuration,
   locks the investigation transition, and exposes an authenticated review read;
   see `docs/phase-05-12-review.md`.
+- Phase 05.13 adds workflow-level acceptance coverage for a complete cited
+  investigation and review, telemetry-outage retry behavior, and rejection of
+  model citations outside the investigation; see
+  `docs/phase-05-13-acceptance.md`.
 
 ## Verification
 
@@ -78,14 +82,24 @@ request logging, and tracing entry points were kept.
   `phase05_0002 (head)`. The live decision was stored for reviewer
   `rajesh-local`, and the investigation transitioned to `COMPLETED` while its
   job remained `DONE`.
+- The project owner reported all three Phase 05.13 acceptance tests passing,
+  followed by the complete suite (`41 passed`) and migration
+  `phase05_0002 (head)`. Together with the recorded live telemetry/Groq/review
+  checks and PostgreSQL concurrency test, this completes the local Phase 05
+  backend implementation and acceptance checkpoint.
 
 The SQLite lease tests alone do not establish PostgreSQL locking behavior. The
 Phase 05.11 integration test now supplies that verification on the development
 PostgreSQL instance.
 
-## Remaining Phase 05 work
+## Post-checkpoint production gaps
 
-1. Complete integration, failure, and provenance acceptance tests before
-   declaring Phase 05 complete. The reviewer action is authenticated for the
-   local MVP, but the rest of the product API still lacks product-wide user
-   authentication; non-review audit actors remain channel labels such as `api`.
+Before any public deployment:
+
+1. Add product-wide authentication and
+   authorization, managed secrets, TLS, deployment hardening, and external
+   security/load validation. Non-review audit actors remain channel labels
+   such as `api`, and the change feed is still not configured.
+2. Re-run the acceptance suite in the deployment environment with managed
+   PostgreSQL and the production telemetry topology. Local passing results do
+   not establish production reliability or security.

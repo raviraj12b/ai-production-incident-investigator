@@ -61,6 +61,12 @@ an idempotent review resource; see
 [`docs/phase-05-12-review.md`](docs/phase-05-12-review.md). This authenticates
 the review action only and is not product-wide API authentication.
 
+Phase 05.13 adds final workflow-level backend acceptance tests for successful
+cited analysis and review, telemetry failure, and invalid model provenance;
+see [`docs/phase-05-13-acceptance.md`](docs/phase-05-13-acceptance.md). Passing
+these tests completes the local Phase 05 backend checkpoint, not production
+deployment hardening.
+
 ## Set up the product database
 
 Install Python 3.11+ and PostgreSQL, create a database, then install packages:

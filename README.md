@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 05.10 (standalone investigation worker)**.
+Development snapshot through **Phase 06.2 (frontend scaffold and design foundation)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -20,6 +20,7 @@ This repository contains a small production-like FastAPI system used to generate
 - Database readiness check; existing `/health` still checks the demo process
 - `202 Accepted` investigation creation, idempotent retries, and status reads
 - PostgreSQL-backed job claims with expiry, lease renewal, and bounded retries
+- React and TypeScript frontend foundation with a responsive evidence-console shell
 
 The existing simulator is separate from the product schema. Jobs can be queued,
 claimed, renewed, and failed by the worker primitives in `backend/jobs.py`.
@@ -129,6 +130,30 @@ stays `QUEUED` until you start the standalone worker.
 - Main API: `8000`
 - Dependency service: `8001`
 - OpenTelemetry Collector OTLP/HTTP: `4318`
+- Frontend development server: `5173`
+
+## Run the frontend foundation
+
+The Phase 06.2 frontend establishes the application shell, routes, design
+tokens, responsive navigation, and frontend quality checks. It intentionally
+does not call the backend until the typed API layer is added in Phase 06.3.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The development server proxies `/api`, `/health`, and `/ready` to
+`http://127.0.0.1:8000`. Run its verified checks with:
+
+```bash
+npm run format:check
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
 
 ## Run tests
 

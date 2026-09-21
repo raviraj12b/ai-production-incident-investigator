@@ -1,4 +1,4 @@
-# Phase 05 backend status (05.10 standalone worker)
+# Phase 05 backend status (05.11 PostgreSQL claim verification)
 
 ## Baseline reconciled
 
@@ -45,6 +45,9 @@ request logging, and tracing entry points were kept.
   capture, one bounded structured Groq model request, and validated completion.
   It also supports a targeted `--once` mode for safer local verification; see
   `docs/phase-05-10-worker.md`.
+- Phase 05.11 adds an opt-in PostgreSQL integration test that releases two job
+  claims concurrently in an isolated temporary schema and verifies that only
+  one worker wins; see `docs/phase-05-11-postgresql-concurrency.md`.
 
 ## Verification
 
@@ -55,25 +58,26 @@ request logging, and tracing entry points were kept.
   tests or PostgreSQL migration. Run `python -m pip install -r requirements.txt`
   and `python -m pytest -q` on the development machine. The revision remains
   `phase05_0002` and `/ready` should return 200.
-- The project owner reported 33 tests passing and migration `phase05_0002`
-  with the initial 05.10 worker. The revised Groq adapter tests must be run
-  on the development machine. Live connectivity to Loki, Prometheus, and
-  Jaeger has not been independently verified here.
+- The project owner reported 34 tests passing and migration `phase05_0002`
+  with the revised Groq adapter. They also reported a successful live worker
+  run using `openai/gpt-oss-120b`, with metric, log, and trace evidence, a
+  `DONE` job, an `AWAITING_REVIEW` investigation, and a 200 report response.
+  The report was inconclusive because the change feed is not configured.
+- The project owner subsequently reported the PostgreSQL concurrency test
+  passing (`1 passed`), followed by the complete suite (`35 passed`) and
+  migration `phase05_0002 (head)`. This verifies concurrent claim safety on
+  the development PostgreSQL instance. These commands cannot be independently
+  rerun in this source-snapshot environment because its project dependencies
+  and database are unavailable.
 
-The SQLite test for lease transitions does not establish PostgreSQL concurrent
-claim safety. Add a PostgreSQL integration test with two workers before
-claiming that guarantee is verified.
+The SQLite lease tests alone do not establish PostgreSQL locking behavior. The
+Phase 05.11 integration test now supplies that verification on the development
+PostgreSQL instance.
 
 ## Remaining Phase 05 work
 
-1. Run the new worker tests and verify the local Loki, Prometheus, and
-   Jaeger gateway with generated traffic if it has not been checked already.
-2. Add a PostgreSQL two-worker concurrency test to verify claim safety.
-3. Verify one real worker run with live telemetry and a configured model.
-   Comparable signals and change/deployment evidence are needed for meaningful
-   contradiction analysis.
-4. Add reviewer actions and audit transitions with an actual authenticated
+1. Add reviewer actions and audit transitions with an actual authenticated
    reviewer identity before treating approvals as authoritative.
-5. Complete integration, failure, and provenance acceptance tests before
+2. Complete integration, failure, and provenance acceptance tests before
    declaring Phase 05 complete. Authentication and an actual reviewer identity
    are still missing; the present audit actor is the channel label `api`.

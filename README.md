@@ -49,6 +49,12 @@ pipeline. A Groq adapter accepts only normalized, bounded evidence. The
 worker requires `GROQ_API_KEY` and uses `openai/gpt-oss-20b` on Groq by default;
 see [`docs/phase-05-10-worker.md`](docs/phase-05-10-worker.md) before running it.
 
+Phase 05.11 adds an opt-in PostgreSQL integration test for simultaneous job
+claims. Set `TEST_DATABASE_URL` and follow
+[`docs/phase-05-11-postgresql-concurrency.md`](docs/phase-05-11-postgresql-concurrency.md)
+to verify the real `FOR UPDATE SKIP LOCKED` behavior; ordinary SQLite tests do
+not establish that guarantee.
+
 ## Set up the product database
 
 Install Python 3.11+ and PostgreSQL, create a database, then install packages:

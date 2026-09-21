@@ -109,3 +109,19 @@ class ReportOut(BaseModel):
     uncertainty: str
     created_at: datetime
     hypotheses: list[HypothesisOut]
+
+
+class ReviewPut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    decision: Literal["ACCEPTED", "REJECTED", "INCONCLUSIVE"]
+    comment: str = Field(default="", max_length=5000)
+
+
+class ReviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    investigation_id: str
+    decision: Literal["ACCEPTED", "REJECTED", "INCONCLUSIVE"]
+    reviewer: str
+    comment: str
+    created_at: datetime

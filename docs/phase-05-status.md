@@ -1,4 +1,4 @@
-# Phase 05 backend status (05.11 PostgreSQL claim verification)
+# Phase 05 backend status (05.12 authenticated review)
 
 ## Baseline reconciled
 
@@ -48,6 +48,10 @@ request logging, and tracing entry points were kept.
 - Phase 05.11 adds an opt-in PostgreSQL integration test that releases two job
   claims concurrently in an isolated temporary schema and verifies that only
   one worker wins; see `docs/phase-05-11-postgresql-concurrency.md`.
+- Phase 05.12 adds a bearer-authenticated, idempotent reviewer decision using
+  the existing reviews table. It binds the audit actor to server configuration,
+  locks the investigation transition, and exposes an authenticated review read;
+  see `docs/phase-05-12-review.md`.
 
 ## Verification
 
@@ -69,6 +73,11 @@ request logging, and tracing entry points were kept.
   the development PostgreSQL instance. These commands cannot be independently
   rerun in this source-snapshot environment because its project dependencies
   and database are unavailable.
+- The project owner reported the Phase 05.12 suite passing, the exact review
+  PUT retry returning the same review, and migration remaining
+  `phase05_0002 (head)`. The live decision was stored for reviewer
+  `rajesh-local`, and the investigation transitioned to `COMPLETED` while its
+  job remained `DONE`.
 
 The SQLite lease tests alone do not establish PostgreSQL locking behavior. The
 Phase 05.11 integration test now supplies that verification on the development
@@ -76,8 +85,7 @@ PostgreSQL instance.
 
 ## Remaining Phase 05 work
 
-1. Add reviewer actions and audit transitions with an actual authenticated
-   reviewer identity before treating approvals as authoritative.
-2. Complete integration, failure, and provenance acceptance tests before
-   declaring Phase 05 complete. Authentication and an actual reviewer identity
-   are still missing; the present audit actor is the channel label `api`.
+1. Complete integration, failure, and provenance acceptance tests before
+   declaring Phase 05 complete. The reviewer action is authenticated for the
+   local MVP, but the rest of the product API still lacks product-wide user
+   authentication; non-review audit actors remain channel labels such as `api`.

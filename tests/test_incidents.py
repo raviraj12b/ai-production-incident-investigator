@@ -11,7 +11,9 @@ from sqlalchemy.pool import StaticPool
 from backend.database import Base, get_session
 from backend.jobs import claim_next_job, fail_claim, renew_lease
 from backend.main import app
-from backend.models import AuditEvent, Incident, Investigation, InvestigationJob
+from backend.models import (
+    AuditEvent, Incident, Investigation, InvestigationJob, Report, Review,
+)
 
 
 @pytest.fixture
@@ -161,3 +163,97 @@ def test_worker_lease_fences_stale_claim_and_limits_retries(api):
     result = client.get(f"/api/v1/investigations/{investigation_id}").json()
     assert result["status"] == "FAILED"
     assert result["job"] == {"status": "FAILED", "attempts": 3}
+
+
+def _awaiting_review(api):
+    client, engine = api
+    incident_id = client.post(
+        "/api/v1/incidents", json=PAYLOAD,
+        headers={"Idempotency-Key": "review-incident"},
+    ).json()["id"]
+    investigation_id = client.post(
+        f"/api/v1/incidents/{incident_id}/investigations", json={},
+        headers={"Idempotency-Key": "review-investigation"},
+    ).json()["id"]
+    with Session(engine) as session:
+        investigation = session.get(Investigation, investigation_id)
+        investigation.status = "AWAITING_REVIEW"
+        session.add(Report(
+            investigation_id=investigation_id,
+            summary="Evidence-backed report",
+            uncertainty="Change feed is unavailable.",
+        ))
+        session.commit()
+    return client, engine, investigation_id
+
+
+def test_review_requires_configured_authenticated_identity(api, monkeypatch):
+    client, _, investigation_id = _awaiting_review(api)
+    url = f"/api/v1/investigations/{investigation_id}/review"
+    body = {"decision": "INCONCLUSIVE", "comment": "Needs deployment evidence"}
+
+    monkeypatch.delenv("REVIEWER_ID", raising=False)
+    monkeypatch.delenv("REVIEWER_API_KEY", raising=False)
+    unavailable = client.put(url, json=body)
+    assert unavailable.status_code == 503
+
+    monkeypatch.setenv("REVIEWER_ID", "reviewer@example.test")
+    monkeypatch.setenv("REVIEWER_API_KEY", "r" * 32)
+    missing = client.put(url, json=body)
+    assert missing.status_code == 401
+    assert missing.headers["www-authenticate"] == "Bearer"
+    invalid = client.put(url, json=body, headers={"Authorization": "Bearer wrong"})
+    assert invalid.status_code == 401
+
+
+def test_review_is_audited_and_exact_retries_are_idempotent(api, monkeypatch):
+    client, engine, investigation_id = _awaiting_review(api)
+    monkeypatch.setenv("REVIEWER_ID", "reviewer@example.test")
+    monkeypatch.setenv("REVIEWER_API_KEY", "r" * 32)
+    headers = {"Authorization": f"Bearer {'r' * 32}"}
+    url = f"/api/v1/investigations/{investigation_id}/review"
+    body = {"decision": "INCONCLUSIVE", "comment": "Needs deployment evidence"}
+
+    first = client.put(url, json=body, headers=headers)
+    assert first.status_code == 200, first.text
+    assert first.json()["reviewer"] == "reviewer@example.test"
+    assert first.json()["decision"] == "INCONCLUSIVE"
+    replay = client.put(url, json=body, headers=headers)
+    assert replay.status_code == 200
+    assert replay.json()["id"] == first.json()["id"]
+    conflict = client.put(
+        url, json={**body, "decision": "ACCEPTED"}, headers=headers,
+    )
+    assert conflict.status_code == 409
+    assert client.get(url, headers=headers).json()["id"] == first.json()["id"]
+
+    with Session(engine) as session:
+        assert session.get(Investigation, investigation_id).status == "COMPLETED"
+        assert len(session.scalars(select(Review)).all()) == 1
+        audits = session.scalars(select(AuditEvent).where(
+            AuditEvent.investigation_id == investigation_id,
+            AuditEvent.action == "INVESTIGATION_REVIEWED",
+        )).all()
+        assert len(audits) == 1
+        assert audits[0].actor == "reviewer@example.test"
+        assert audits[0].detail == {"decision": "INCONCLUSIVE"}
+
+
+def test_review_rejects_investigation_before_report_is_ready(api, monkeypatch):
+    client, _ = api
+    monkeypatch.setenv("REVIEWER_ID", "reviewer@example.test")
+    monkeypatch.setenv("REVIEWER_API_KEY", "r" * 32)
+    headers = {"Authorization": f"Bearer {'r' * 32}"}
+    incident_id = client.post(
+        "/api/v1/incidents", json=PAYLOAD,
+        headers={"Idempotency-Key": "early-review-incident"},
+    ).json()["id"]
+    investigation_id = client.post(
+        f"/api/v1/incidents/{incident_id}/investigations", json={},
+        headers={"Idempotency-Key": "early-review-investigation"},
+    ).json()["id"]
+    response = client.put(
+        f"/api/v1/investigations/{investigation_id}/review",
+        json={"decision": "ACCEPTED"}, headers=headers,
+    )
+    assert response.status_code == 409

@@ -55,6 +55,12 @@ claims. Set `TEST_DATABASE_URL` and follow
 to verify the real `FOR UPDATE SKIP LOCKED` behavior; ordinary SQLite tests do
 not establish that guarantee.
 
+Phase 05.12 adds the protected human decision after report generation. A
+configured reviewer can accept, reject, or mark a report inconclusive through
+an idempotent review resource; see
+[`docs/phase-05-12-review.md`](docs/phase-05-12-review.md). This authenticates
+the review action only and is not product-wide API authentication.
+
 ## Set up the product database
 
 Install Python 3.11+ and PostgreSQL, create a database, then install packages:
@@ -93,9 +99,9 @@ The response is 201 with an incident ID and `Location` header. Retrying with
 the same key and payload returns the same incident. Reusing a key with another
 payload returns 409. `GET /api/v1/incidents`, `GET /api/v1/incidents/{id}` and
 `PATCH /api/v1/incidents/{id}` are available; PATCH edits title, description,
-or severity. Incident closure is reserved for a later review workflow. In this
-snapshot `actor="api"` records the channel, since authentication and a verified
-human identity are not implemented.
+or severity. Review completion does not automatically close the operational
+incident. Non-review writes still use `actor="api"` as a channel label; the
+review endpoint records the configured authenticated reviewer identity.
 
 Create a job by posting `{}` or a `focus` to the nested endpoint, with a new
 `Idempotency-Key` for each intended investigation:

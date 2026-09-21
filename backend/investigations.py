@@ -7,19 +7,21 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from backend.auth import ReviewerIdentity, authenticated_reviewer
 from backend.database import get_session
 from backend.models import (
     AuditEvent, Evidence, Hypothesis, HypothesisEvidence, Incident, Investigation,
-    InvestigationJob, InvestigationRequest, Report,
+    InvestigationJob, InvestigationRequest, Report, Review,
 )
 from backend.schemas import (
     EvidenceLinkOut, EvidenceOut, HypothesisOut, InvestigationCreate,
-    InvestigationOut, JobOut, ReportOut,
+    InvestigationOut, JobOut, ReportOut, ReviewOut, ReviewPut,
 )
 
 
 router = APIRouter(tags=["investigations"])
 DbSession = Annotated[Session, Depends(get_session)]
+Reviewer = Annotated[ReviewerIdentity, Depends(authenticated_reviewer)]
 
 
 def investigation_out(session: Session, investigation: Investigation) -> InvestigationOut:
@@ -144,6 +146,79 @@ def get_report(investigation_id: str, session: DbSession):
         uncertainty=report.uncertainty, created_at=report.created_at,
         hypotheses=findings,
     )
+
+
+@router.put(
+    "/api/v1/investigations/{investigation_id}/review",
+    response_model=ReviewOut,
+)
+def put_review(
+    investigation_id: str,
+    body: ReviewPut,
+    session: DbSession,
+    reviewer: Reviewer,
+):
+    """Create the single reviewer decision; exact retries return the same row."""
+    investigation = session.scalar(
+        select(Investigation)
+        .where(Investigation.id == investigation_id)
+        .with_for_update()
+    )
+    if investigation is None:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    existing = session.scalar(
+        select(Review).where(Review.investigation_id == investigation_id)
+    )
+    if existing is not None:
+        if (
+            existing.reviewer == reviewer.reviewer_id
+            and existing.decision == body.decision
+            and existing.comment == body.comment
+        ):
+            return existing
+        raise HTTPException(status_code=409, detail="Investigation already has a review")
+
+    if investigation.status != "AWAITING_REVIEW":
+        raise HTTPException(status_code=409, detail="Investigation is not awaiting review")
+    if session.scalar(select(Report.id).where(
+        Report.investigation_id == investigation_id,
+    )) is None:
+        raise HTTPException(status_code=409, detail="Investigation report is not available")
+
+    review = Review(
+        investigation_id=investigation_id,
+        decision=body.decision,
+        reviewer=reviewer.reviewer_id,
+        comment=body.comment,
+    )
+    session.add(review)
+    investigation.status = "COMPLETED"
+    session.add(AuditEvent(
+        incident_id=investigation.incident_id,
+        investigation_id=investigation_id,
+        action="INVESTIGATION_REVIEWED",
+        actor=reviewer.reviewer_id,
+        detail={"decision": body.decision},
+    ))
+    session.commit()
+    session.refresh(review)
+    return review
+
+
+@router.get(
+    "/api/v1/investigations/{investigation_id}/review",
+    response_model=ReviewOut,
+)
+def get_review(investigation_id: str, session: DbSession, reviewer: Reviewer):
+    if session.get(Investigation, investigation_id) is None:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+    review = session.scalar(select(Review).where(
+        Review.investigation_id == investigation_id,
+    ))
+    if review is None:
+        raise HTTPException(status_code=404, detail="Review is not available")
+    return review
 
 
 @router.get(

@@ -41,7 +41,10 @@ logger = logging.getLogger("incident-demo-api.product")
 @app.exception_handler(HTTPException)
 async def api_http_error(request: Request, exc: HTTPException):
     if request.url.path.startswith("/api/v1/"):
-        codes = {404: "NOT_FOUND", 409: "CONFLICT", 422: "VALIDATION_ERROR", 503: "SERVICE_UNAVAILABLE"}
+        codes = {
+            401: "UNAUTHORIZED", 404: "NOT_FOUND", 409: "CONFLICT",
+            422: "VALIDATION_ERROR", 503: "SERVICE_UNAVAILABLE",
+        }
         return JSONResponse(
             status_code=exc.status_code,
             content={"error": {"code": codes.get(exc.status_code, "HTTP_ERROR"), "message": str(exc.detail)}},

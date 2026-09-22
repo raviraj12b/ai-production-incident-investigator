@@ -182,3 +182,54 @@ unchanged retry idempotency, `409` reconciliation, durable job status and
 attempts, worker failure, parent ancestry, and active-versus-terminal polling.
 Browser E2E verification against the real local API and worker remains Phase
 06.9 work and is not claimed by this checkpoint.
+
+## Phase 06.6 — evidence and report workspace
+
+Implemented:
+
+- fetched the backend's complete bounded set of up to 100 normalized evidence
+  records for a known investigation;
+- preserved backend chronological order and explicitly stated that observation
+  order is not inferred causality;
+- added page-local `LOG`, `TRACE`, `METRIC`, and `CHANGE` filters;
+- displayed service, observation time, normalized summary, source backend,
+  `source_ref`, and trace ID without treating identifiers as external links;
+- made source references and trace IDs copyable without rendering raw secrets,
+  headers, or API keys;
+- fetched evidence and reports independently with separate loading, empty,
+  unavailable, retry, and partial-data states;
+- treated report `404` during an active run as analysis not yet available;
+- keyed evidence/report reads by investigation status so the transition out of
+  an active state performs a final authoritative fetch before polling stops;
+- displayed report summary and uncertainty as visually distinct content;
+- rendered `LOW`, `MEDIUM`, and `HIGH` confidence only, without percentages;
+- resolved `SUPPORTS` and `CONTRADICTS` citations against the complete loaded
+  evidence set and displayed missing references explicitly;
+- kept missing evidence separate from citation relationships and did not relabel
+  it as recommended action;
+- surfaced known evidence gaps, including `CHANGE_FEED_NOT_CONFIGURED`, as
+  limitations rather than inferred change events;
+- rendered zero hypotheses as valid abstention: `No supported hypothesis`;
+- retained evidence-first reading order ahead of model analysis.
+
+No backend source, Python dependency, confidence calculation, RCA logic,
+dependency inference, next-check generation, review flow, or product
+authentication was added.
+
+## Phase 06.6 verification
+
+Executed successfully in the checkpoint workspace:
+
+- `npm run format:check`;
+- `npm run lint` with zero warnings;
+- `npm run typecheck`;
+- `npm test` — 5 test files, 26 tests passed;
+- `npm run build` — Vite production build completed;
+- `npm audit --audit-level=high` — 0 vulnerabilities.
+
+The evidence tests cover evidence-first ordering, kind filtering, provenance,
+supporting and contradicting labels, missing citation references, qualitative
+confidence, explicit change-feed limitations, zero-hypothesis abstention,
+active-run report `404`, and independent evidence/report failure behavior.
+Browser E2E verification against the real local API and worker remains Phase
+06.9 work and is not claimed here.

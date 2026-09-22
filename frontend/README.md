@@ -4,7 +4,7 @@ React and TypeScript operations console for the AI Production Incident Investiga
 
 ## Current checkpoint
 
-Phase 06.5 adds the investigation lifecycle to the typed incident workflows:
+Phase 06.6 adds the evidence and report workspace to the investigation lifecycle:
 
 - Vite application and strict TypeScript configuration;
 - React Router page structure;
@@ -29,9 +29,19 @@ Phase 06.5 adds the investigation lifecycle to the typed incident workflows:
 - polling only for queued/running states, paused in background tabs;
 - immutable parent-investigation ancestry and safe worker-failure messages;
 - a real `/ready` product/database readiness indicator in the application shell.
+- one complete bounded evidence read of up to 100 backend-normalized records;
+- chronological timeline and page-local LOG/TRACE/METRIC/CHANGE filters;
+- copyable, non-navigable source references and trace identifiers;
+- independently recoverable evidence and report requests;
+- explicit pre-completion report-unavailable behavior;
+- report summary, uncertainty, qualitative hypotheses, and missing evidence;
+- SUPPORTS and CONTRADICTS citation resolution with unavailable-reference states;
+- explicit evidence limitations including `CHANGE_FEED_NOT_CONFIGURED`;
+- valid abstention rendering when a report contains zero hypotheses.
 
-Evidence, report, hypotheses, citations, uncertainty, and missing-evidence
-rendering belong to Phase 06.6 and are not approximated by lifecycle metadata.
+The frontend does not calculate confidence, infer causality, create dependency
+relationships, or turn missing evidence into invented next-check actions. Human
+review belongs to Phase 06.7.
 
 ## API contract workflow
 

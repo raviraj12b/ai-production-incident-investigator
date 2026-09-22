@@ -46,6 +46,9 @@ describe('App foundation', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('investigation-123')).toBeInTheDocument()
     expect(screen.getByText('QUEUED')).toBeInTheDocument()
-    expect(screen.getByText(/shows no generated cause/i)).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Chronological evidence timeline' }),
+    ).toBeInTheDocument()
+    expect(await screen.findByText('Analysis is not available yet')).toBeInTheDocument()
   })
 })

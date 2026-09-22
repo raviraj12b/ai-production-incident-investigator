@@ -17,15 +17,17 @@ function renderApp(path = '/incidents') {
 }
 
 describe('App foundation', () => {
-  it('renders the evidence-focused incidents workspace without claiming API connectivity', () => {
+  it('renders incidents returned by the API', async () => {
     renderApp()
 
     expect(screen.getByRole('heading', { level: 1, name: 'Incidents' })).toBeInTheDocument()
-    expect(screen.getAllByText('Not checked').length).toBeGreaterThan(0)
-    expect(screen.getByText(/does not fabricate incidents/i)).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Checkout latency increase' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/filters apply only to this loaded page/i)).toBeInTheDocument()
   })
 
-  it('navigates to the incident intake foundation', async () => {
+  it('navigates to manual incident intake', async () => {
     const user = userEvent.setup()
     renderApp()
 
@@ -33,6 +35,7 @@ describe('App foundation', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Create incident' })).toBeInTheDocument()
     expect(screen.getByText(/automatic anomaly detection is outside/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create incident' })).toBeInTheDocument()
   })
 
   it('renders an honest investigation placeholder for a deep link', () => {

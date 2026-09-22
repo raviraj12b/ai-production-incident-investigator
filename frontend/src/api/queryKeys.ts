@@ -7,6 +7,7 @@ function page(params: PageParams = {}) {
 export const queryKeys = {
   incidents: {
     all: ['incidents'] as const,
+    lists: ['incidents', 'list'] as const,
     list: (params?: PageParams) => ['incidents', 'list', page(params)] as const,
     detail: (incidentId: string) => ['incidents', 'detail', incidentId] as const,
     investigations: (incidentId: string, params?: PageParams) =>

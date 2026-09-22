@@ -5,11 +5,16 @@ function page(params: PageParams = {}) {
 }
 
 export const queryKeys = {
+  system: {
+    readiness: ['system', 'readiness'] as const,
+  },
   incidents: {
     all: ['incidents'] as const,
     lists: ['incidents', 'list'] as const,
     list: (params?: PageParams) => ['incidents', 'list', page(params)] as const,
     detail: (incidentId: string) => ['incidents', 'detail', incidentId] as const,
+    investigationLists: (incidentId: string) =>
+      ['incidents', 'detail', incidentId, 'investigations'] as const,
     investigations: (incidentId: string, params?: PageParams) =>
       ['incidents', 'detail', incidentId, 'investigations', page(params)] as const,
   },

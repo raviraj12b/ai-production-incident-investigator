@@ -8,6 +8,7 @@ import { ApiError } from '../api/client'
 import { api } from '../api/endpoints'
 import { queryKeys } from '../api/queryKeys'
 import { ErrorState, LoadingState } from '../components/ApiState'
+import { IncidentInvestigations } from '../components/IncidentInvestigations'
 import { IncidentWindow, SeverityBadge, StatusBadge } from '../components/IncidentMeta'
 import { PageHeader } from '../components/PageHeader'
 import { incidentEditFormSchema, type IncidentEditForm } from '../forms/incidentSchemas'
@@ -183,14 +184,7 @@ export function IncidentDetailPage() {
         </aside>
       </div>
 
-      <section className="mt-6 surface-card p-6" aria-labelledby="investigations-title">
-        <h2 className="text-lg font-semibold text-slate-100" id="investigations-title">
-          Investigations
-        </h2>
-        <p className="mt-2 text-sm text-slate-500">
-          Investigation history and start controls are intentionally introduced in Phase 06.5.
-        </p>
-      </section>
+      <IncidentInvestigations incidentId={incident.id} incidentStatus={incident.status} />
     </>
   )
 }

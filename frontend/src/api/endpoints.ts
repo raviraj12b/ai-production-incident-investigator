@@ -26,6 +26,7 @@ function pageQuery(params: PageParams = {}): string {
 
 export function createApi(client: ApiClient = apiClient) {
   return {
+    getReadiness: () => client.request<{ status: string }>('/ready'),
     listIncidents: (params?: PageParams) =>
       client.request<Incident[]>(`/api/v1/incidents${pageQuery(params)}`),
     getIncident: (incidentId: string) =>

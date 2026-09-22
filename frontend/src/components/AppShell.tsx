@@ -8,8 +8,12 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
+
+import { api } from '../api/endpoints'
+import { queryKeys } from '../api/queryKeys'
 
 const navItems = [
   {
@@ -66,15 +70,30 @@ function Brand() {
 }
 
 function ConnectionStatus() {
+  const readinessQuery = useQuery({
+    queryKey: queryKeys.system.readiness,
+    queryFn: api.getReadiness,
+    retry: false,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
+  })
+  const ready = readinessQuery.data?.status === 'ready'
+
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/65 p-4">
       <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
         <CircleDotDashed aria-hidden="true" size={15} />
         API status
       </div>
-      <p className="mt-2 text-sm font-semibold text-slate-200">Not checked</p>
+      <p className={`mt-2 text-sm font-semibold ${ready ? 'text-emerald-300' : 'text-slate-200'}`}>
+        {readinessQuery.isPending ? 'Checking…' : ready ? 'Ready' : 'Unavailable'}
+      </p>
       <p className="mt-1 text-xs leading-5 text-slate-500">
-        Connectivity arrives with the typed API layer in 06.3.
+        {ready
+          ? 'API process and product database are ready.'
+          : readinessQuery.isPending
+            ? 'Checking product and database readiness.'
+            : 'The product API or database is not ready.'}
       </p>
     </div>
   )

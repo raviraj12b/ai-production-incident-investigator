@@ -38,13 +38,14 @@ describe('App foundation', () => {
     expect(screen.getByRole('button', { name: 'Create incident' })).toBeInTheDocument()
   })
 
-  it('renders an honest investigation placeholder for a deep link', () => {
+  it('loads authoritative investigation state for a deep link', async () => {
     renderApp('/investigations/investigation-123')
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Evidence workspace' }),
+      await screen.findByRole('heading', { level: 1, name: 'General incident investigation' }),
     ).toBeInTheDocument()
     expect(screen.getByText('investigation-123')).toBeInTheDocument()
+    expect(screen.getByText('QUEUED')).toBeInTheDocument()
     expect(screen.getByText(/shows no generated cause/i)).toBeInTheDocument()
   })
 })

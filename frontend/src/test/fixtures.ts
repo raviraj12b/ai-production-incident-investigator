@@ -29,7 +29,7 @@ export function buildInvestigation(overrides: Partial<Investigation> = {}): Inve
     started_at: null,
     finished_at: null,
     error: null,
-    job: { status: 'PENDING', attempts: 0 },
+    job: { status: 'QUEUED', attempts: 0 },
     ...overrides,
   }
 }

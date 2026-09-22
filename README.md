@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 06.3 (frontend API contract and test harness)**.
+Development snapshot through **Phase 06.4 (frontend incident workflows)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -22,6 +22,7 @@ This repository contains a small production-like FastAPI system used to generate
 - PostgreSQL-backed job claims with expiry, lease renewal, and bounded retries
 - React and TypeScript frontend foundation with a responsive evidence-console shell
 - Captured OpenAPI contract, generated frontend types, typed API client, and MSW contract tests
+- API-backed incident list, manual intake, pagination, detail, and supported metadata editing
 
 The existing simulator is separate from the product schema. Jobs can be queued,
 claimed, renewed, and failed by the worker primitives in `backend/jobs.py`.
@@ -133,11 +134,11 @@ stays `QUEUED` until you start the standalone worker.
 - OpenTelemetry Collector OTLP/HTTP: `4318`
 - Frontend development server: `5173`
 
-## Run the frontend foundation
+## Run the frontend
 
-The Phase 06.3 frontend includes the application shell, routes, design tokens,
-responsive navigation, and a tested typed API boundary. Page components are not
-connected to API data until the Phase 06.4 incident list and intake slice.
+The Phase 06.4 frontend includes the application shell, tested typed API
+boundary, and connected incident list, intake, detail, and supported-edit
+workflows. Investigation lifecycle UI remains scheduled for Phase 06.5.
 The locked requirements and implementation plan are in
 `docs/phase-06-01-frontend-requirements.md`.
 

@@ -4,8 +4,8 @@ React and TypeScript operations console for the AI Production Incident Investiga
 
 ## Current checkpoint
 
-Phase 06.3 establishes the typed API boundary and test harness on top of the
-Phase 06.2 foundation:
+Phase 06.4 connects the incident workflows to the typed API boundary established
+in Phase 06.3:
 
 - Vite application and strict TypeScript configuration;
 - React Router page structure;
@@ -17,9 +17,15 @@ Phase 06.2 foundation:
 - a captured FastAPI OpenAPI document and committed generated TypeScript types;
 - typed endpoint functions, normalized API errors, and stable query keys;
 - MSW handlers, typed fixture builders, and contract-boundary tests.
+- API-backed incident list with offset pagination and page-local filters;
+- manual incident intake with client and server validation;
+- retry-safe idempotency keys that change only for a new submission intent;
+- incident detail and edits limited to title, description, and severity;
+- explicit loading, empty, unavailable, and conflict/error presentation;
+- local-time display with timezone-visible labels and UTC API serialization.
 
-The API functions are not connected to pages yet, so the UI still does not
-display backend data. Incident list and intake UI belong to Phase 06.4.
+Investigation history, creation, polling, and state presentation belong to Phase
+06.5 and are not approximated by the incident pages.
 
 ## API contract workflow
 

@@ -94,3 +94,46 @@ Executed successfully in the checkpoint workspace:
 These checks verify contract capture, generated types, client behavior, mocks,
 and a production frontend compilation. They do not claim live page integration,
 browser E2E behavior, or production authentication readiness.
+
+## Phase 06.4 — incident workflows
+
+Implemented:
+
+- connected the incident list to `GET /api/v1/incidents` with a page size of 20;
+- added Previous/Next offset pagination without inventing a total count;
+- added severity and status filters that explicitly apply only to the loaded page;
+- added loading, empty, page-filter-empty, network/error, and retry states;
+- implemented manual incident intake using React Hook Form and Zod;
+- validated required fields, length limits, timezone-local inputs, and an end time
+  later than the start time before submission;
+- serialized valid local date-time values as timezone-aware ISO UTC values for
+  the API;
+- reused one idempotency key for an unchanged failed submission and generated a
+  new key when edited values formed a new intent;
+- mapped structured backend validation issues to form fields while preserving a
+  safe request-level error message;
+- implemented incident detail loading and edits limited to title, description,
+  and severity;
+- displayed service, status, incident ID, severity, and the immutable incident
+  time window without exposing unsupported controls;
+- kept investigation history and start controls deferred to Phase 06.5.
+
+No backend source, Python dependency, investigation workflow, evidence/report
+workspace, reviewer credential handling, or product authentication was changed.
+
+## Phase 06.4 verification
+
+Executed successfully in the checkpoint workspace:
+
+- `npm run format:check`;
+- `npm run lint` with zero warnings;
+- `npm run typecheck`;
+- `npm test` — 3 test files, 15 tests passed;
+- `npm run build` — Vite production build completed;
+- `npm audit --audit-level=high` — 0 vulnerabilities.
+
+The workflow tests cover API-backed rendering, empty results, heuristic
+pagination, time-window validation, timezone-aware request serialization,
+idempotency-key retry/new-intent behavior, server validation mapping, detail
+loading, and supported-field updates. Browser E2E verification against the real
+local API remains part of Phase 06.9 rather than being claimed here.

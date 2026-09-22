@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 06.4 (frontend incident workflows)**.
+Development snapshot through **Phase 06.5 (frontend investigation lifecycle)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -23,6 +23,7 @@ This repository contains a small production-like FastAPI system used to generate
 - React and TypeScript frontend foundation with a responsive evidence-console shell
 - Captured OpenAPI contract, generated frontend types, typed API client, and MSW contract tests
 - API-backed incident list, manual intake, pagination, detail, and supported metadata editing
+- Investigation history, queue action, durable worker state, bounded polling, ancestry, and failure presentation
 
 The existing simulator is separate from the product schema. Jobs can be queued,
 claimed, renewed, and failed by the worker primitives in `backend/jobs.py`.
@@ -136,9 +137,10 @@ stays `QUEUED` until you start the standalone worker.
 
 ## Run the frontend
 
-The Phase 06.4 frontend includes the application shell, tested typed API
-boundary, and connected incident list, intake, detail, and supported-edit
-workflows. Investigation lifecycle UI remains scheduled for Phase 06.5.
+The Phase 06.5 frontend includes the application shell, tested typed API
+boundary, connected incident workflows, investigation history and queueing,
+durable job-state polling, ancestry, and worker-failure presentation. Evidence
+and report rendering remain scheduled for Phase 06.6.
 The locked requirements and implementation plan are in
 `docs/phase-06-01-frontend-requirements.md`.
 

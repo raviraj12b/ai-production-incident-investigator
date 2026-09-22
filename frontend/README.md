@@ -4,8 +4,7 @@ React and TypeScript operations console for the AI Production Incident Investiga
 
 ## Current checkpoint
 
-Phase 06.4 connects the incident workflows to the typed API boundary established
-in Phase 06.3:
+Phase 06.5 adds the investigation lifecycle to the typed incident workflows:
 
 - Vite application and strict TypeScript configuration;
 - React Router page structure;
@@ -23,9 +22,16 @@ in Phase 06.3:
 - incident detail and edits limited to title, description, and severity;
 - explicit loading, empty, unavailable, and conflict/error presentation;
 - local-time display with timezone-visible labels and UTC API serialization.
+- API-backed investigation history with offset pagination;
+- optional-focus investigation creation with retry-safe idempotency;
+- active-run and closed-incident safeguards backed by server conflict handling;
+- authoritative investigation/job states, attempts, and lifecycle timestamps;
+- polling only for queued/running states, paused in background tabs;
+- immutable parent-investigation ancestry and safe worker-failure messages;
+- a real `/ready` product/database readiness indicator in the application shell.
 
-Investigation history, creation, polling, and state presentation belong to Phase
-06.5 and are not approximated by the incident pages.
+Evidence, report, hypotheses, citations, uncertainty, and missing-evidence
+rendering belong to Phase 06.6 and are not approximated by lifecycle metadata.
 
 ## API contract workflow
 

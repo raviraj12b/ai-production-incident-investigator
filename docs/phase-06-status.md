@@ -137,3 +137,48 @@ pagination, time-window validation, timezone-aware request serialization,
 idempotency-key retry/new-intent behavior, server validation mapping, detail
 loading, and supported-field updates. Browser E2E verification against the real
 local API remains part of Phase 06.9 rather than being claimed here.
+
+## Phase 06.5 — investigation lifecycle
+
+Implemented:
+
+- connected incident detail to paginated investigation history;
+- displayed immutable run focus, status, queue time, and worker attempt count;
+- added optional-focus investigation creation with the verified `202` contract;
+- reused an idempotency key for unchanged network retries and generated a new
+  key for changed submission intent;
+- disabled creation when a loaded active run exists or the incident is closed;
+- handled backend `409` conflicts by refreshing authoritative history rather
+  than inventing a client-side run;
+- connected investigation detail to durable investigation and job state;
+- displayed queue, start, and finish timestamps plus the three-attempt budget;
+- polled only `QUEUED` and `RUNNING` states at four-second intervals and used
+  TanStack Query's background-tab pause behavior;
+- stopped polling for `AWAITING_REVIEW`, `COMPLETED`, `FAILED`, and `CANCELLED`;
+- displayed `parent_id` as immutable ancestry without offering unsupported
+  reinvestigation controls or implying the parent report changed;
+- mapped the verified worker failure codes to safe explanations while retaining
+  the returned code for diagnosis;
+- explicitly omitted retry/cancel controls because no such API exists;
+- replaced the obsolete shell placeholder with a real `/ready` product/database
+  readiness check.
+
+No backend source, Python dependency, evidence/report rendering, review flow,
+worker control, or product authentication was changed.
+
+## Phase 06.5 verification
+
+Executed successfully in the checkpoint workspace:
+
+- `npm run format:check`;
+- `npm run lint` with zero warnings;
+- `npm run typecheck`;
+- `npm test` — 4 test files, 20 tests passed;
+- `npm run build` — Vite production build completed;
+- `npm audit --audit-level=high` — 0 vulnerabilities.
+
+The lifecycle tests cover active-run safeguards, investigation creation,
+unchanged retry idempotency, `409` reconciliation, durable job status and
+attempts, worker failure, parent ancestry, and active-versus-terminal polling.
+Browser E2E verification against the real local API and worker remains Phase
+06.9 work and is not claimed by this checkpoint.

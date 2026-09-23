@@ -4,7 +4,7 @@ React and TypeScript operations console for the AI Production Incident Investiga
 
 ## Current checkpoint
 
-Phase 06.6 adds the evidence and report workspace to the investigation lifecycle:
+Phase 06.7 adds immutable human review to the investigation lifecycle:
 
 - Vite application and strict TypeScript configuration;
 - React Router page structure;
@@ -38,10 +38,18 @@ Phase 06.6 adds the evidence and report workspace to the investigation lifecycle
 - SUPPORTS and CONTRADICTS citation resolution with unavailable-reference states;
 - explicit evidence limitations including `CHANGE_FEED_NOT_CONFIGURED`;
 - valid abstention rendering when a report contains zero hypotheses.
+- one explicit `ACCEPTED`, `REJECTED`, or `INCONCLUSIVE` decision;
+- an optional bounded comment and a separate confirmation step;
+- reviewer credentials held only in React memory and sent only to review endpoints;
+- authenticated retrieval of completed reviews;
+- exact-request retry after `503` without losing the prepared decision;
+- `409` reconciliation by retrieving and displaying the authoritative existing review;
+- authoritative investigation refresh after review submission or retrieval.
 
 The frontend does not calculate confidence, infer causality, create dependency
-relationships, or turn missing evidence into invented next-check actions. Human
-review belongs to Phase 06.7.
+relationships, turn missing evidence into invented next-check actions, or alter
+the generated report during review. The single local reviewer bearer credential
+is not production authentication or a role system.
 
 ## API contract workflow
 

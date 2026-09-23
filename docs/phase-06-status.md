@@ -233,3 +233,51 @@ confidence, explicit change-feed limitations, zero-hypothesis abstention,
 active-run report `404`, and independent evidence/report failure behavior.
 Browser E2E verification against the real local API and worker remains Phase
 06.9 work and is not claimed here.
+
+## Phase 06.7 — immutable human review
+
+Implemented:
+
+- added the human-review panel after the evidence and generated report so the
+  operator sees the evidence trail before recording judgment;
+- limited the review to one explicit `ACCEPTED`, `REJECTED`, or `INCONCLUSIVE`
+  decision plus an optional comment of up to 5,000 characters;
+- added a separate confirmation step that states the decision is immutable;
+- held the reviewer credential only in React page memory, rendered it as a
+  password field, and passed it only to the existing review GET/PUT functions;
+- did not read reviewer credentials from source, environment variables, URLs,
+  logs, local storage, or session storage;
+- preserved the exact prepared decision, comment, and in-memory credential for
+  safe retry after a `503` response;
+- handled `401` without discarding the prepared decision so the credential can
+  be corrected;
+- handled `409` by automatically retrieving the authoritative existing review
+  with the same credential and showing that no replacement occurred;
+- required authentication before retrieving the review of a completed
+  investigation;
+- refreshed the active investigation query after successful review submission
+  or retrieval so `COMPLETED` remains backend-authoritative;
+- kept non-review API requests unauthenticated and made no claim of login,
+  roles, product-wide authorization, or production credential security;
+- made an existing local-date intake assertion timezone-independent so the
+  suite verifies the intended local-input-to-UTC serialization on any host.
+
+No backend source, Python dependency, report content, evidence relationship,
+incident status, worker behavior, or product-wide authentication was changed.
+
+## Phase 06.7 verification
+
+Executed successfully in the checkpoint workspace:
+
+- `npm run format:check`;
+- `npm run lint` with zero warnings;
+- `npm run typecheck`;
+- `npm test` — 6 test files, 32 tests passed;
+- `npm run build` — Vite production build completed;
+- `npm audit --audit-level=high` — 0 vulnerabilities.
+
+The new review tests cover successful completion, review-only bearer headers,
+`401`, automatic `409` reconciliation, `503` exact retry, completed-review
+retrieval, and credential non-persistence across storage, URL, and component
+remount boundaries. Browser E2E verification against the real local API and
+worker remains Phase 06.9 work and is not claimed here.

@@ -43,7 +43,7 @@ export function FoundationNotice() {
               <article className="bg-slate-900/80 p-5 sm:p-6" key={principle.title}>
                 <Icon aria-hidden="true" className="text-cyan-300" size={19} strokeWidth={1.8} />
                 <h3 className="mt-4 text-sm font-semibold text-slate-100">{principle.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{principle.detail}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{principle.detail}</p>
               </article>
             )
           })}

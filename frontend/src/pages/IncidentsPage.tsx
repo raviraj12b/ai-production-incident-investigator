@@ -53,7 +53,7 @@ export function IncidentsPage() {
             <h2 className="mt-2 text-lg font-semibold text-slate-100" id="incident-list-title">
               Manual and externally reported incidents
             </h2>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
               Filters apply only to this loaded page. The API does not expose server-side filters or
               a verified total count.
             </p>
@@ -116,13 +116,13 @@ export function IncidentsPage() {
                       <h3 className="mt-3 font-semibold text-slate-100 group-hover:text-cyan-200">
                         {incident.title}
                       </h3>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-slate-400">
                         {incident.service} · Started {formatDate(incident.window_start)}
                       </p>
                     </div>
                     <ArrowRight
                       aria-hidden="true"
-                      className="mt-2 shrink-0 text-slate-600"
+                      className="mt-2 shrink-0 text-slate-400"
                       size={18}
                     />
                   </Link>
@@ -145,7 +145,7 @@ export function IncidentsPage() {
             >
               Previous
             </button>
-            <span className="text-xs text-slate-500">Page {offset / PAGE_SIZE + 1}</span>
+            <span className="text-xs text-slate-400">Page {offset / PAGE_SIZE + 1}</span>
             <button
               className="secondary-button"
               disabled={incidents.length < PAGE_SIZE}

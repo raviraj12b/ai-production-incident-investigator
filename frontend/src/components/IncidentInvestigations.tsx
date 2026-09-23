@@ -103,7 +103,7 @@ export function IncidentInvestigations({
           <h2 className="text-lg font-semibold text-slate-100" id="investigations-title">
             Investigation history
           </h2>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-400">
             Runs are immutable. Active entries refresh automatically while this page is visible.
           </p>
 
@@ -135,20 +135,20 @@ export function IncidentInvestigations({
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <InvestigationStatusBadge status={investigation.status} />
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-slate-400">
                             Attempt {investigation.job.attempts}
                           </span>
                         </div>
                         <p className="mt-3 text-sm font-medium text-slate-200">
                           {investigation.focus || 'General incident investigation'}
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-slate-400">
                           Queued {formatDate(investigation.created_at)}
                         </p>
                       </div>
                       <ArrowRight
                         aria-hidden="true"
-                        className="mt-2 shrink-0 text-slate-600"
+                        className="mt-2 shrink-0 text-slate-400"
                         size={18}
                       />
                     </Link>
@@ -169,7 +169,7 @@ export function IncidentInvestigations({
                 >
                   Previous
                 </button>
-                <span className="text-xs text-slate-500">Page {offset / PAGE_SIZE + 1}</span>
+                <span className="text-xs text-slate-400">Page {offset / PAGE_SIZE + 1}</span>
                 <button
                   className="secondary-button"
                   disabled={investigations.length < PAGE_SIZE}
@@ -192,7 +192,7 @@ export function IncidentInvestigations({
             <Play size={19} />
           </span>
           <h3 className="mt-4 font-semibold text-slate-100">Start investigation</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-500">
+          <p className="mt-2 text-sm leading-6 text-slate-400">
             The backend collects and analyzes bounded telemetry. The browser does not perform RCA.
           </p>
           <label className="field-label mt-5">
@@ -204,7 +204,11 @@ export function IncidentInvestigations({
               placeholder="For example: checkout latency after deployment"
               rows={4}
             />
-            {errors.focus ? <span className="field-error">{errors.focus.message}</span> : null}
+            {errors.focus ? (
+              <span className="field-error" role="alert">
+                {errors.focus.message}
+              </span>
+            ) : null}
           </label>
 
           {activeInvestigation ? (

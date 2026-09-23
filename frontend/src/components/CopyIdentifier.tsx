@@ -21,7 +21,7 @@ export function CopyIdentifier({ label, value }: { label: string; value: string 
         <code className="min-w-0 flex-1 break-all text-xs leading-5 text-slate-400">{value}</code>
         <button
           aria-label={`Copy ${label}`}
-          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-800 hover:text-cyan-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300"
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-cyan-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300"
           onClick={() => void copy()}
           type="button"
         >

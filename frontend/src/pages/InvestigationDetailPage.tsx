@@ -70,7 +70,7 @@ export function InvestigationDetailPage() {
       </section>
 
       {investigation.status === 'FAILED' ? (
-        <section className="mt-6 error-banner" aria-labelledby="failure-title">
+        <section className="mt-6 error-banner" aria-labelledby="failure-title" role="alert">
           <div className="flex items-start gap-3">
             <AlertTriangle aria-hidden="true" className="mt-0.5 shrink-0" size={20} />
             <div>
@@ -94,7 +94,7 @@ export function InvestigationDetailPage() {
           className="surface-card w-full p-6 lg:max-w-[20rem]"
           aria-label="Requested investigation identifier"
         >
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
             <Fingerprint aria-hidden="true" size={15} />
             Investigation ID
           </div>
@@ -110,7 +110,7 @@ export function InvestigationDetailPage() {
               >
                 {investigation.parent_id}
               </Link>
-              <p className="mt-2 text-xs leading-5 text-slate-500">
+              <p className="mt-2 text-xs leading-5 text-slate-400">
                 This is a linked new run. The parent report remains unchanged.
               </p>
             </div>

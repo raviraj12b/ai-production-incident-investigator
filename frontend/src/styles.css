@@ -32,6 +32,11 @@ body {
     radial-gradient(circle at 70% -15%, rgba(8, 145, 178, 0.11), transparent 30rem), #020617;
 }
 
+:where(a, button, input, textarea, select):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
@@ -83,7 +88,7 @@ select {
   }
 
   .back-link {
-    @apply inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-cyan-200 focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300;
+    @apply inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-cyan-200 focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300;
   }
 
   .feature-icon {
@@ -105,7 +110,7 @@ select {
   .field-label input,
   .field-label textarea,
   .field-label select {
-    @apply w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3.5 py-3 text-sm font-normal tracking-normal text-slate-100 outline-none transition placeholder:text-slate-700 focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/15;
+    @apply w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3.5 py-3 text-sm font-normal tracking-normal text-slate-100 outline-none transition placeholder:text-slate-400 focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/15;
   }
 
   .field-label textarea {
@@ -162,7 +167,7 @@ select {
   }
 
   .metadata-label {
-    @apply text-[0.67rem] font-semibold uppercase tracking-[0.13em] text-slate-500;
+    @apply text-[0.67rem] font-semibold uppercase tracking-[0.13em] text-slate-400;
   }
 
   .filter-button {

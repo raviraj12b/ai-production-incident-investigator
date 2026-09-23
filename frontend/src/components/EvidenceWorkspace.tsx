@@ -70,7 +70,7 @@ export function EvidenceWorkspace({ investigation }: { investigation: Investigat
             <h2 className="mt-2 text-xl font-semibold text-slate-100" id="evidence-title">
               Chronological evidence timeline
             </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
               Normalized records and provenance from the bounded backend pipeline. Order reflects
               observation time, not inferred causality.
             </p>
@@ -131,7 +131,7 @@ export function EvidenceWorkspace({ investigation }: { investigation: Investigat
           <h2 className="mt-2 text-xl font-semibold text-slate-100" id="analysis-title">
             Report and hypotheses
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
             Hypotheses remain uncertain claims. Confidence is qualitative and citations resolve only
             to the observed evidence above.
           </p>
@@ -174,7 +174,7 @@ function EvidenceCard({ evidence }: { evidence: Evidence }) {
       <article className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/35 p-5">
         <div className="flex flex-wrap items-center gap-2">
           <span className={`badge evidence-${evidence.kind.toLowerCase()}`}>{evidence.kind}</span>
-          <span className="text-xs text-slate-500">{formatDate(evidence.observed_at)}</span>
+          <span className="text-xs text-slate-400">{formatDate(evidence.observed_at)}</span>
         </div>
         <p className="mt-3 text-sm font-medium leading-6 text-slate-200">{evidence.summary}</p>
         <dl className="mt-4 grid gap-4 border-t border-slate-800 pt-4 sm:grid-cols-2">
@@ -199,19 +199,27 @@ function EvidenceCard({ evidence }: { evidence: Evidence }) {
 function ReportUnavailable({ status, onRetry }: { status: string; onRetry: () => void }) {
   const active = ['QUEUED', 'RUNNING'].includes(status)
   return (
-    <div className="state-panel items-start" role="status">
+    <div
+      aria-live="polite"
+      className="state-panel flex-col items-stretch sm:flex-row sm:items-start"
+      role="status"
+    >
       <FileClock aria-hidden="true" className="mt-0.5 shrink-0 text-amber-300" size={20} />
       <div className="flex-1">
         <p className="font-semibold text-slate-200">
           {active ? 'Analysis is not available yet' : 'No analysis report is available'}
         </p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-400">
           {active
             ? 'The investigation is still active. This section refreshes without inventing interim conclusions.'
             : 'The backend did not return a report for this investigation state.'}
         </p>
       </div>
-      <button className="secondary-button shrink-0" onClick={onRetry} type="button">
+      <button
+        className="secondary-button w-full shrink-0 sm:w-auto"
+        onClick={onRetry}
+        type="button"
+      >
         Retry
       </button>
     </div>
@@ -275,7 +283,7 @@ function ReportContent({
             <CircleHelp aria-hidden="true" className="mt-0.5 text-cyan-300" size={20} />
             <div>
               <p className="font-semibold text-slate-200">No supported hypothesis</p>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-400">
                 The analysis abstained because the available evidence did not support a hypothesis.
               </p>
             </div>
@@ -312,7 +320,7 @@ function HypothesisCard({
   return (
     <li className="rounded-xl border border-slate-800 bg-slate-950/35 p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
           Hypothesis {index + 1}
         </p>
         <span className={`badge confidence-${hypothesis.confidence.toLowerCase()}`}>
@@ -352,7 +360,7 @@ function HypothesisCard({
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-400">
             No missing evidence was listed for this hypothesis.
           </p>
         )}
@@ -384,7 +392,7 @@ function CitationList({
         {supports ? 'Supporting evidence' : 'Contradicting evidence'}
       </h4>
       {links.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500">None cited.</p>
+        <p className="mt-2 text-sm text-slate-400">None cited.</p>
       ) : (
         <ul className="mt-3 space-y-2">
           {links.map((link) => {
@@ -408,7 +416,7 @@ function CitationList({
                         ? 'Evidence reference unavailable'
                         : 'Evidence reference not loaded'}
                     </p>
-                    <p className="mt-1 break-all font-mono text-xs text-slate-500">
+                    <p className="mt-1 break-all font-mono text-xs text-slate-400">
                       {link.evidence_id}
                     </p>
                   </>

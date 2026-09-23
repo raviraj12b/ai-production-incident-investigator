@@ -109,7 +109,7 @@ export function IncidentDetailPage() {
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <form className="surface-card p-6 sm:p-8" noValidate onSubmit={submit}>
           <h2 className="text-lg font-semibold text-slate-100">Incident metadata</h2>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-400">
             Only title, description, and severity can be edited. Service, status, and time window
             are immutable.
           </p>
@@ -117,7 +117,11 @@ export function IncidentDetailPage() {
             <label className="field-label">
               Title
               <input {...register('title')} maxLength={200} />
-              {errors.title ? <span className="field-error">{errors.title.message}</span> : null}
+              {errors.title ? (
+                <span className="field-error" role="alert">
+                  {errors.title.message}
+                </span>
+              ) : null}
             </label>
             <label className="field-label">
               Severity
@@ -132,7 +136,9 @@ export function IncidentDetailPage() {
               Description
               <textarea {...register('description')} maxLength={5000} rows={5} />
               {errors.description ? (
-                <span className="field-error">{errors.description.message}</span>
+                <span className="field-error" role="alert">
+                  {errors.description.message}
+                </span>
               ) : null}
             </label>
           </div>

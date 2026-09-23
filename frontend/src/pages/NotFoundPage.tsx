@@ -15,7 +15,7 @@ export function NotFoundPage() {
         >
           Workspace not found
         </h1>
-        <p className="mt-3 text-sm leading-6 text-slate-500">
+        <p className="mt-3 text-sm leading-6 text-slate-400">
           The requested frontend route does not exist.
         </p>
         <Link className="secondary-button mt-7" to="/incidents">

@@ -182,7 +182,11 @@ function Field({
     <label className={`field-label ${className}`}>
       {label}
       {children}
-      {error ? <span className="field-error">{error}</span> : null}
+      {error ? (
+        <span className="field-error" role="alert">
+          {error}
+        </span>
+      ) : null}
     </label>
   )
 }

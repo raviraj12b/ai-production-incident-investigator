@@ -118,7 +118,7 @@ export function ReviewPanel({ investigation }: { investigation: Investigation })
             <span className="relative">
               <KeyRound
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3.5 top-3.5 text-slate-600"
+                className="pointer-events-none absolute left-3.5 top-3.5 text-slate-400"
                 size={17}
               />
               <input
@@ -135,7 +135,7 @@ export function ReviewPanel({ investigation }: { investigation: Investigation })
               />
             </span>
             <span
-              className="text-xs font-normal normal-case tracking-normal text-slate-500"
+              className="text-xs font-normal normal-case tracking-normal text-slate-400"
               id="credential-help"
             >
               Never placed in source, environment configuration, URLs, logs, or browser storage.
@@ -211,7 +211,9 @@ export function ReviewPanel({ investigation }: { investigation: Investigation })
                   rows={5}
                 />
                 {errors.comment ? (
-                  <span className="field-error">{errors.comment.message}</span>
+                  <span className="field-error" role="alert">
+                    {errors.comment.message}
+                  </span>
                 ) : null}
               </label>
               <div className="mt-6 flex justify-end">
@@ -268,7 +270,7 @@ function Confirmation({
       <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-300">
         {payload.comment || 'No comment provided.'}
       </p>
-      <p className="mt-4 text-xs leading-5 text-slate-500">
+      <p className="mt-4 text-xs leading-5 text-slate-400">
         This decision is immutable. A retry sends the exact same decision and comment.
       </p>
       {error ? (

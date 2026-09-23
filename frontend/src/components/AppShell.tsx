@@ -9,8 +9,8 @@ import {
   X,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
 import { api } from '../api/endpoints'
 import { queryKeys } from '../api/queryKeys'
@@ -51,7 +51,7 @@ function Brand() {
   return (
     <NavLink
       aria-label="Incident Investigator home"
-      className="group flex items-center gap-3"
+      className="group flex items-center gap-3 focus-visible:rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300"
       to="/"
     >
       <span className="brand-mark" aria-hidden="true">
@@ -61,7 +61,7 @@ function Brand() {
         <span className="block text-sm font-semibold tracking-[-0.01em] text-slate-100">
           Incident Investigator
         </span>
-        <span className="block text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-500">
+        <span className="block text-[0.68rem] font-medium uppercase tracking-[0.18em] text-slate-400">
           Evidence console
         </span>
       </span>
@@ -80,7 +80,11 @@ function ConnectionStatus() {
   const ready = readinessQuery.data?.status === 'ready'
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/65 p-4">
+    <div
+      aria-live="polite"
+      className="rounded-2xl border border-slate-800 bg-slate-900/65 p-4"
+      role="status"
+    >
       <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
         <CircleDotDashed aria-hidden="true" size={15} />
         API status
@@ -88,7 +92,7 @@ function ConnectionStatus() {
       <p className={`mt-2 text-sm font-semibold ${ready ? 'text-emerald-300' : 'text-slate-200'}`}>
         {readinessQuery.isPending ? 'Checking…' : ready ? 'Ready' : 'Unavailable'}
       </p>
-      <p className="mt-1 text-xs leading-5 text-slate-500">
+      <p className="mt-1 text-xs leading-5 text-slate-400">
         {ready
           ? 'API process and product database are ready.'
           : readinessQuery.isPending
@@ -100,7 +104,39 @@ function ConnectionStatus() {
 }
 
 export function AppShell() {
+  const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const mainRef = useRef<HTMLElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const mobilePanelRef = useRef<HTMLElement>(null)
+  const previousPath = useRef(location.pathname)
+  const pageName = routeName(location.pathname)
+
+  useEffect(() => {
+    document.title = `${pageName} | Incident Investigator`
+    if (previousPath.current !== location.pathname) {
+      setMobileOpen(false)
+      mainRef.current?.focus()
+      previousPath.current = location.pathname
+    }
+  }, [location.pathname, pageName])
+
+  useEffect(() => {
+    if (!mobileOpen) return
+    mobilePanelRef.current?.querySelector<HTMLElement>('a[href]')?.focus()
+  }, [mobileOpen])
+
+  function closeMobileNavigation() {
+    setMobileOpen(false)
+    menuButtonRef.current?.focus()
+  }
+
+  function handleMobileNavigationKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeMobileNavigation()
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -111,7 +147,7 @@ export function AppShell() {
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-slate-800/80 bg-slate-950/95 px-5 py-6 backdrop-blur lg:flex lg:flex-col">
         <Brand />
         <div className="mt-10">
-          <p className="mb-3 px-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-600">
+          <p className="mb-3 px-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
             Workspace
           </p>
           <Navigation />
@@ -135,6 +171,7 @@ export function AppShell() {
           aria-expanded={mobileOpen}
           aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
           className="icon-button"
+          ref={menuButtonRef}
           onClick={() => setMobileOpen((current) => !current)}
           type="button"
         >
@@ -143,21 +180,26 @@ export function AppShell() {
       </header>
 
       {mobileOpen ? (
-        <div
+        <aside
+          aria-label="Mobile navigation panel"
           className="fixed inset-x-0 top-16 z-20 border-b border-slate-800 bg-slate-950 px-4 py-4 shadow-2xl lg:hidden"
           id="mobile-navigation"
+          onKeyDown={handleMobileNavigationKeyDown}
+          ref={mobilePanelRef}
         >
           <Navigation onNavigate={() => setMobileOpen(false)} />
           <div className="mt-4">
             <ConnectionStatus />
           </div>
-        </div>
+        </aside>
       ) : null}
 
       <div className="lg:pl-72">
         <main
-          className="mx-auto w-full max-w-[96rem] px-4 py-7 sm:px-6 sm:py-10 lg:px-10"
+          className="mx-auto w-full max-w-[96rem] px-4 py-7 focus:outline-none sm:px-6 sm:py-10 lg:px-10"
           id="main-content"
+          ref={mainRef}
+          tabIndex={-1}
         >
           <Outlet />
         </main>
@@ -174,7 +216,18 @@ export function AppShell() {
       <span className="sr-only">
         Investigation conclusions require evidence, uncertainty, and human review.
       </span>
+      <span aria-live="polite" className="sr-only">
+        {pageName} page loaded
+      </span>
       <ArrowRight className="hidden" aria-hidden="true" />
     </div>
   )
+}
+
+function routeName(pathname: string): string {
+  if (pathname === '/' || pathname === '/incidents') return 'Incidents'
+  if (pathname === '/incidents/new') return 'Create incident'
+  if (pathname.startsWith('/incidents/')) return 'Incident detail'
+  if (pathname.startsWith('/investigations/')) return 'Investigation detail'
+  return 'Page not found'
 }

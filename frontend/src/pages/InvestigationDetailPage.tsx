@@ -8,6 +8,7 @@ import { ErrorState, LoadingState } from '../components/ApiState'
 import { EvidenceWorkspace } from '../components/EvidenceWorkspace'
 import { InvestigationStatusBadge, InvestigationTimes } from '../components/InvestigationMeta'
 import { PageHeader } from '../components/PageHeader'
+import { ReviewPanel } from '../components/ReviewPanel'
 import { investigationFailureMessage, investigationPollInterval } from '../utils/investigationState'
 
 export function InvestigationDetailPage() {
@@ -118,6 +119,7 @@ export function InvestigationDetailPage() {
       </div>
 
       <EvidenceWorkspace investigation={investigation} />
+      <ReviewPanel investigation={investigation} />
     </>
   )
 }

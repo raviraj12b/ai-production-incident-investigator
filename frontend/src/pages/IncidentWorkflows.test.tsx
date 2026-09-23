@@ -119,8 +119,8 @@ describe('manual incident intake', () => {
     expect(keys[2]).not.toBe(keys[1])
     expect(bodies[2]).toMatchObject({
       title: 'Edited title',
-      window_start: '2026-09-21T10:00:00.000Z',
-      window_end: '2026-09-21T11:00:00.000Z',
+      window_start: new Date('2026-09-21T10:00').toISOString(),
+      window_end: new Date('2026-09-21T11:00').toISOString(),
     })
   })
 

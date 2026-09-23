@@ -281,3 +281,54 @@ The new review tests cover successful completion, review-only bearer headers,
 retrieval, and credential non-persistence across storage, URL, and component
 remount boundaries. Browser E2E verification against the real local API and
 worker remains Phase 06.9 work and is not claimed here.
+
+## Phase 06.8 — responsive and accessibility hardening
+
+Implemented:
+
+- added a route-level error boundary with safe generic messaging, incident-list
+  recovery, and explicit page reload without exposing internal error details;
+- moved keyboard focus to main content after client-side route navigation and
+  added a polite page-change announcement plus synchronized document title;
+- moved focus into the mobile navigation when opened, supported Escape to
+  close it, and restored focus to the menu button;
+- added a global visible-focus fallback for links, buttons, inputs, textareas,
+  and selects while preserving component-specific focus treatments;
+- marked loading panels as polite busy live regions and readiness changes as a
+  polite status;
+- made query/report error recovery stack vertically with full-width buttons on
+  narrow screens before returning to horizontal layout at larger breakpoints;
+- announced client-validation messages and terminal investigation failures;
+- replaced low-contrast slate secondary text, metadata, and placeholder tokens
+  with the WCAG AA-capable slate-400 token on the application's dark surfaces;
+- retained the existing reduced-motion media query and accessible textual
+  labels alongside every color-coded status, confidence, evidence kind, and
+  evidence relationship;
+- statically reviewed fixed/minimum widths, grid columns, long identifiers, and
+  wrapping behavior for the 320 CSS pixel boundary.
+
+No backend source, API contract, product behavior, evidence logic, report
+content, reviewer authentication boundary, or dependency was changed.
+
+## Phase 06.8 verification
+
+Executed successfully in the checkpoint workspace:
+
+- `npm run format:check`;
+- `npm run lint` with zero warnings;
+- `npm run typecheck`;
+- `npm test` — 7 test files, 37 tests passed;
+- `npm run build` — Vite production build completed;
+- `npm audit --audit-level=high` — 0 vulnerabilities.
+
+The new hardening tests cover mobile-menu focus and Escape recovery, SPA route
+focus and announcements, loading semantics, narrow retry controls, safe route
+error recovery, WCAG contrast-ratio calculations for the hardened tokens, and
+the reduced-motion rule. A static source scan found no unwrapped fixed-width
+content exceeding the 320 px content boundary.
+
+A live 320 px browser render was not independently completed in this workspace:
+the available remote browser blocks loopback URLs and no local Chromium binary
+is installed. That limitation is not treated as a successful visual test. The
+real-browser viewport checks and full backend/worker flows remain explicit
+Phase 06.9 work.

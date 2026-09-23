@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 06.7 (frontend immutable human review)**.
+Development snapshot through **Phase 06.8 (frontend responsive and accessibility hardening)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -26,6 +26,7 @@ This repository contains a small production-like FastAPI system used to generate
 - Investigation history, queue action, durable worker state, bounded polling, ancestry, and failure presentation
 - Chronological evidence, provenance, report uncertainty, hypotheses, missing evidence, and resolved citations
 - Credential-gated immutable human review with conflict reconciliation and exact-request retry
+- Route-level recovery, keyboard focus management, live announcements, reduced motion, and hardened narrow-screen states
 
 The existing simulator is separate from the product schema. Jobs can be queued,
 claimed, renewed, and failed by the worker primitives in `backend/jobs.py`.
@@ -139,12 +140,15 @@ stays `QUEUED` until you start the standalone worker.
 
 ## Run the frontend
 
-The Phase 06.7 frontend includes the application shell, connected incident and
+The Phase 06.8 frontend includes the application shell, connected incident and
 investigation workflows, a bounded normalized-evidence timeline, provenance,
 report uncertainty, qualitative hypotheses, missing evidence, resolved
 supporting/contradicting citations, and immutable human review. Reviewer
 credentials are entered only for review requests and remain in page memory;
 this local trusted-development mechanism is not product-wide authentication.
+The interface also includes route-level recovery, keyboard-managed mobile
+navigation, route-change focus and announcements, contrast-hardened text,
+responsive retry states, and reduced-motion behavior.
 The locked requirements and implementation plan are in
 `docs/phase-06-01-frontend-requirements.md`.
 

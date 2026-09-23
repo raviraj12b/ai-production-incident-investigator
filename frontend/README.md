@@ -4,7 +4,7 @@ React and TypeScript operations console for the AI Production Incident Investiga
 
 ## Current checkpoint
 
-Phase 06.7 adds immutable human review to the investigation lifecycle:
+Phase 06.8 hardens responsiveness and accessibility across the completed local workflow:
 
 - Vite application and strict TypeScript configuration;
 - React Router page structure;
@@ -45,6 +45,14 @@ Phase 06.7 adds immutable human review to the investigation lifecycle:
 - exact-request retry after `503` without losing the prepared decision;
 - `409` reconciliation by retrieving and displaying the authoritative existing review;
 - authoritative investigation refresh after review submission or retrieval.
+- route-level recovery that hides internal error details;
+- keyboard focus transfer into the mobile navigation and Escape-to-close behavior;
+- main-content focus plus polite page announcements after client-side navigation;
+- polite, busy loading announcements and announced field-validation errors;
+- retry and recovery layouts that stack at narrow widths;
+- an application-wide visible-focus fallback for interactive controls;
+- higher-contrast secondary text, metadata, and placeholder tokens;
+- retained reduced-motion behavior for transitions and animations.
 
 The frontend does not calculate confidence, infer causality, create dependency
 relationships, turn missing evidence into invented next-check actions, or alter

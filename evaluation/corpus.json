@@ -1,0 +1,82 @@
+{
+  "version": "07.1.0",
+  "cases": [
+    {
+      "id": "no-observations",
+      "model_input": {
+        "gaps": ["NO_LOGS", "NO_REQUEST_RATE", "NO_TRACES", "CHANGE_FEED_NOT_CONFIGURED"],
+        "evidence": []
+      },
+      "expected_abstain": true,
+      "rationale": "No observations can support a specific cause; the worker uses its fixed inconclusive result without a model call."
+    },
+    {
+      "id": "isolated-server-error",
+      "model_input": {
+        "gaps": ["NO_REQUEST_RATE", "NO_TRACES", "CHANGE_FEED_NOT_CONFIGURED"],
+        "evidence": [
+          {
+            "evidence_id": "00000000-0000-4000-8000-000000000001",
+            "kind": "LOG",
+            "observed_at": "2026-09-18T10:01:00+00:00",
+            "service": "incident-demo-api",
+            "summary": "request_failed (HTTP 503)",
+            "trace_id": null
+          }
+        ]
+      },
+      "expected_abstain": true,
+      "rationale": "One server error has many possible causes; there is no rate, trace, or change context."
+    },
+    {
+      "id": "mixed-status-and-trace",
+      "model_input": {
+        "gaps": ["CHANGE_FEED_NOT_CONFIGURED"],
+        "evidence": [
+          {
+            "evidence_id": "00000000-0000-4000-8000-000000000002",
+            "kind": "LOG",
+            "observed_at": "2026-09-18T10:01:00+00:00",
+            "service": "incident-demo-api",
+            "summary": "request_completed (HTTP 200)",
+            "trace_id": "00000000000000000000000000000001"
+          },
+          {
+            "evidence_id": "00000000-0000-4000-8000-000000000003",
+            "kind": "LOG",
+            "observed_at": "2026-09-18T10:02:00+00:00",
+            "service": "incident-demo-api",
+            "summary": "request_failed (HTTP 503)",
+            "trace_id": "00000000000000000000000000000001"
+          },
+          {
+            "evidence_id": "00000000-0000-4000-8000-000000000004",
+            "kind": "METRIC",
+            "observed_at": "2026-09-18T10:02:00+00:00",
+            "service": "incident-demo-api",
+            "summary": "request_rate=1.0000/s",
+            "trace_id": null
+          },
+          {
+            "evidence_id": "00000000-0000-4000-8000-000000000005",
+            "kind": "METRIC",
+            "observed_at": "2026-09-18T10:02:00+00:00",
+            "service": "incident-demo-api",
+            "summary": "error_rate=0.1000/s",
+            "trace_id": null
+          },
+          {
+            "evidence_id": "00000000-0000-4000-8000-000000000006",
+            "kind": "TRACE",
+            "observed_at": "2026-09-18T10:02:00+00:00",
+            "service": "incident-demo-api",
+            "summary": "Trace span observed",
+            "trace_id": "00000000000000000000000000000001"
+          }
+        ]
+      },
+      "expected_abstain": true,
+      "rationale": "An error rate and correlated trace show failure symptoms but neither exposes the dependency response, a change event, or a unique causal mechanism."
+    }
+  ]
+}

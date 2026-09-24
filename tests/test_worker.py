@@ -225,6 +225,10 @@ def test_groq_adapter_sends_only_bounded_normalized_data_and_handles_refusal():
         assert "store" not in calls[0] and calls[0]["max_completion_tokens"] == 2048
         assert "private-token" not in json.dumps(calls[0])
         assert calls[0]["response_format"]["json_schema"]["strict"] is True
+        instructions = calls[0]["messages"][0]["content"]
+        assert "at most twelve evidence links total across all hypotheses" in instructions
+        assert "must not repeat an evidence_id" in instructions
+        assert "return an empty hypotheses array" in instructions
         with pytest.raises(ModelOutputInvalid):
             analyzer.analyze((EvidenceView(evidence[0].id, "LOG", START,
                                            "incident-demo-api", "private-token"),), gaps)

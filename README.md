@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 06.9 (frontend E2E harness; live gate pending)**.
+Development snapshot through **Phase 06.9 (frontend complete; local E2E and live-stack gates verified)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 

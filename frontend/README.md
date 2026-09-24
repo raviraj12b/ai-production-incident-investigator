@@ -4,7 +4,7 @@ React and TypeScript operations console for the AI Production Incident Investiga
 
 ## Current checkpoint
 
-Phase 06.8 hardens responsiveness and accessibility across the completed local workflow:
+Phase 06.9 adds explicit browser and live-stack verification boundaries:
 
 - Vite application and strict TypeScript configuration;
 - React Router page structure;
@@ -53,6 +53,12 @@ Phase 06.8 hardens responsiveness and accessibility across the completed local w
 - an application-wide visible-focus fallback for interactive controls;
 - higher-contrast secondary text, metadata, and placeholder tokens;
 - retained reduced-motion behavior for transitions and animations.
+- pinned Playwright Test and a reproducible Chromium configuration;
+- a controlled desktop browser journey from incident intake through immutable review;
+- a dedicated 320 CSS pixel project with overflow and keyboard-navigation checks;
+- an opt-in real-stack workflow that is never enabled without `E2E_LIVE=1`;
+- separate commands for browser installation, fixture tests, test discovery, and live verification;
+- Vitest isolation so Playwright specifications are not collected as component tests.
 
 The frontend does not calculate confidence, infer causality, create dependency
 relationships, turn missing evidence into invented next-check actions, or alter
@@ -88,6 +94,11 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+npm run test:e2e:list
+npm run test:e2e:install
+npm run test:e2e
 ```
 
 The development server proxies product API requests to `http://127.0.0.1:8000`.
+The real-stack E2E prerequisites and credential-safe PowerShell commands are in
+`../docs/phase-06-9-e2e.md`.

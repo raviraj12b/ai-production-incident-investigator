@@ -332,3 +332,82 @@ the available remote browser blocks loopback URLs and no local Chromium binary
 is installed. That limitation is not treated as a successful visual test. The
 real-browser viewport checks and full backend/worker flows remain explicit
 Phase 06.9 work.
+
+## Phase 06.9 — real integration and E2E verification
+
+Implemented:
+
+- pinned `@playwright/test` `1.63.0` and added desktop Chromium plus 320 CSS
+  pixel Chromium projects;
+- added a controlled HTTP-fixture browser journey covering incident creation,
+  idempotency headers, investigation creation, evidence, report, citations,
+  missing evidence, review-only authorization, immutable review, and the
+  authoritative `COMPLETED` refresh;
+- added a 320 px browser test for horizontal overflow, mobile-menu focus,
+  Escape recovery, review confirmation, and narrow-screen usability;
+- added an opt-in live test that creates a real incident, queues a real worker
+  investigation, waits for `AWAITING_REVIEW`, and completes authenticated human
+  review against the actual local stack;
+- gated the live test behind `E2E_LIVE=1` and required the reviewer credential
+  at runtime rather than source, URLs, persistent storage, or committed files;
+- disabled screenshots, video, and tracing for the live credential-bearing
+  suite so failure artifacts do not retain the reviewer key;
+- isolated Vitest discovery to `src/**/*.test.{ts,tsx}` so component and browser
+  test runners do not collect one another's suites;
+- documented browser installation, real-stack prerequisites, PowerShell secret
+  handling, persistent test-data impact, and the evidence required to close the
+  milestone.
+
+The initial browser harness did not change backend behavior. Owner-run live
+verification later exposed a mismatch between the model instructions and the
+existing aggregate limit of twelve evidence links. The model contract was
+corrected to state that limit explicitly, while the downstream validation,
+database migration, API contract, evidence rules, report rules, and
+authentication boundary remained unchanged.
+
+## Phase 06.9 verification status
+
+Verified in the checkpoint workspace:
+
+- `npm run format:check` passed;
+- `npm run lint` passed with zero warnings;
+- `npm run typecheck` passed;
+- `npm test` passed — 7 files and 37 tests;
+- `npm run build` passed;
+- `npm audit --audit-level=high` reported 0 vulnerabilities;
+- `npm run test:e2e:list` compiled and discovered 3 tests in 3 files across the
+  desktop and 320 px projects;
+- backend regression suite passed — 40 passed and 1 PostgreSQL test skipped.
+
+Environment limits in the checkpoint workspace:
+
+- fixture Playwright execution and the real 320 px render did not start because
+  the Chromium download returned invalid empty archives and no browser
+  executable was installed;
+- the live browser workflow did not run because PostgreSQL, telemetry services,
+  the worker, and reviewer/model credentials are not available here;
+- the PostgreSQL concurrency test remained skipped because
+  `TEST_DATABASE_URL` was not configured;
+- `alembic current` against a real database was not run.
+
+The failed Playwright launch in the checkpoint workspace was an
+environment/tooling failure before test execution, not a product result.
+
+Owner-reported local verification subsequently completed the remaining gates:
+
+- Playwright Chromium installed successfully;
+- the controlled desktop and 320 CSS pixel browser projects passed — 2 passed
+  and the opt-in live test skipped as expected;
+- the first live attempts captured the same 78 validated evidence records but
+  exposed the aggregate citation-budget mismatch rather than weakening the
+  validator;
+- after correcting the model instructions, the real PostgreSQL/API/telemetry/
+  worker/reviewer Playwright workflow passed — 1 passed in 1.3 minutes — and
+  the worker reached `DONE` through its bounded retry behavior;
+- the backend regression suite passed — 41 passed with 1 warning — including
+  the configured PostgreSQL concurrency test;
+- `python -m alembic current` reported `phase05_0002 (head)`;
+- frontend audit reported 0 vulnerabilities.
+
+Phase 06.9 is closed on this local-development evidence. This does not claim
+public-deployment readiness; product-wide authentication remains absent.

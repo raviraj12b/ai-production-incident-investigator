@@ -1,6 +1,6 @@
 # AI Production Incident Investigator
 
-Development snapshot through **Phase 06.8 (frontend responsive and accessibility hardening)**.
+Development snapshot through **Phase 06.9 (frontend E2E harness; live gate pending)**.
 
 This repository contains a small production-like FastAPI system used to generate and investigate controlled incidents. At this checkpoint it includes:
 
@@ -27,6 +27,7 @@ This repository contains a small production-like FastAPI system used to generate
 - Chronological evidence, provenance, report uncertainty, hypotheses, missing evidence, and resolved citations
 - Credential-gated immutable human review with conflict reconciliation and exact-request retry
 - Route-level recovery, keyboard focus management, live announcements, reduced motion, and hardened narrow-screen states
+- Playwright fixture, 320 px, and opt-in real-stack browser workflows with separate evidence boundaries
 
 The existing simulator is separate from the product schema. Jobs can be queued,
 claimed, renewed, and failed by the worker primitives in `backend/jobs.py`.
@@ -140,7 +141,7 @@ stays `QUEUED` until you start the standalone worker.
 
 ## Run the frontend
 
-The Phase 06.8 frontend includes the application shell, connected incident and
+The Phase 06.9 frontend includes the application shell, connected incident and
 investigation workflows, a bounded normalized-evidence timeline, provenance,
 report uncertainty, qualitative hypotheses, missing evidence, resolved
 supporting/contradicting citations, and immutable human review. Reviewer
@@ -149,6 +150,13 @@ this local trusted-development mechanism is not product-wide authentication.
 The interface also includes route-level recovery, keyboard-managed mobile
 navigation, route-change focus and announcements, contrast-hardened text,
 responsive retry states, and reduced-motion behavior.
+
+Phase 06.9 adds Playwright coverage for the critical browser journey and a
+real 320 px viewport project. It also provides a separate opt-in test for the
+actual PostgreSQL/API/telemetry/worker/review path. The controlled fixture suite
+is not evidence that the real backend works. Follow
+[`docs/phase-06-9-e2e.md`](docs/phase-06-9-e2e.md) to complete the local browser
+and live-stack gates.
 The locked requirements and implementation plan are in
 `docs/phase-06-01-frontend-requirements.md`.
 
@@ -167,6 +175,8 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+npm run test:e2e:install
+npm run test:e2e
 ```
 
 ## Run tests

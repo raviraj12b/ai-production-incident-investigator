@@ -53,3 +53,5 @@ pnpm-debug.log*
 
 # General runtime logs
 *.log
+# Local provider evaluation scratch runs (publish a chosen run deliberately)
+/evaluation/scratch/

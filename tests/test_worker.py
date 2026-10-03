@@ -12,7 +12,8 @@ from sqlalchemy.pool import StaticPool
 from backend.analysis_pipeline import AnalysisDraft, EvidenceLinkDraft, HypothesisDraft
 from backend.database import Base
 from backend.model_adapter import (
-    DEFAULT_MODEL, EvidenceView, GroqAnalyzer, ModelOutputInvalid, ModelUnavailable,
+    DEFAULT_MODEL, EvidenceView, GroqAnalyzer, ModelOutputInvalid, ModelRefusal,
+    ModelUnavailable,
 )
 from backend.models import Evidence, Incident, Investigation, InvestigationJob, Report
 from backend.telemetry_gateway import TelemetryUnavailable
@@ -249,3 +250,39 @@ def test_groq_adapter_sends_only_bounded_normalized_data_and_handles_refusal():
     )) as client:
         with pytest.raises(ModelUnavailable):
             GroqAnalyzer("fake-key", DEFAULT_MODEL, client).analyze(evidence, gaps)
+
+
+def test_refusal_is_distinct_but_still_invalid_output_for_the_worker(queued):
+    evidence = (EvidenceView("a" * 36, "LOG", START, "incident-demo-api",
+                             "request_failed (HTTP 503)"),)
+    gaps = ("NO_TRACES",)
+
+    def reply(message):
+        return lambda request: httpx.Response(200, json={
+            "object": "chat.completion",
+            "choices": [{"finish_reason": "stop", "message": {"role": "assistant", **message}}],
+        })
+
+    with httpx.Client(transport=httpx.MockTransport(
+        reply({"content": None, "refusal": "Cannot answer"}),
+    )) as client:
+        with pytest.raises(ModelRefusal) as refused:
+            GroqAnalyzer("fake-key", DEFAULT_MODEL, client).analyze(evidence, gaps)
+    assert isinstance(refused.value, ModelOutputInvalid)
+
+    # Missing text without an explicit refusal stays generic invalid output.
+    with httpx.Client(transport=httpx.MockTransport(reply({"content": None}))) as client:
+        with pytest.raises(ModelOutputInvalid) as missing:
+            GroqAnalyzer("fake-key", DEFAULT_MODEL, client).analyze(evidence, gaps)
+    assert not isinstance(missing.value, ModelRefusal)
+
+    factory, investigation_id = queued
+
+    class RefusingAnalyzer:
+        def analyze(self, evidence, gaps):
+            raise ModelRefusal("Model did not return structured text")
+
+    assert run_once(factory, FakeGateway(), RefusingAnalyzer(), "worker-1") == "HANDLED_FAILURE"
+    with factory() as session:
+        assert session.get(Investigation, investigation_id).error == "RESULT_INVALID"
+        assert session.scalar(select(Report.id)) is None

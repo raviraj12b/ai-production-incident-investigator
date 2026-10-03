@@ -32,6 +32,10 @@ class ModelOutputInvalid(ValueError):
     """The provider returned a refusal, incomplete result, or invalid shape."""
 
 
+class ModelRefusal(ModelOutputInvalid):
+    """The provider explicitly refused; handled as invalid output by the worker."""
+
+
 @dataclass(frozen=True)
 class EvidenceView:
     id: str
@@ -216,7 +220,9 @@ class GroqAnalyzer:
         message = choice.get("message")
         if not isinstance(message, dict) or message.get("role") != "assistant":
             raise ModelOutputInvalid("Invalid model response message")
-        if message.get("refusal") or not isinstance(message.get("content"), str):
+        if message.get("refusal"):
+            raise ModelRefusal("Model did not return structured text")
+        if not isinstance(message.get("content"), str):
             raise ModelOutputInvalid("Model did not return structured text")
         try:
             return _parse(json.loads(message["content"]), gaps)

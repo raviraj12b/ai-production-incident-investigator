@@ -12,7 +12,7 @@ from backend.analysis_pipeline import (
     AnalysisDraft, AnalysisValidationError, EvidenceLinkDraft, HypothesisDraft,
 )
 from backend.model_adapter import DEFAULT_MODEL, EvidenceView, GroqAnalyzer
-from evaluation import run_provider
+from evaluation import run_provider, summarize_run
 from evaluation.run_provider import prompt_fingerprint, run_evaluation, validate_draft
 from evaluation.score_abstention import load_corpus, load_outputs, score
 
@@ -191,3 +191,23 @@ def test_missing_credentials_fail_before_any_file_is_written(tmp_path, monkeypat
     assert run_provider.main(["--output-root", str(tmp_path / "runs")]) == 2
     assert not (tmp_path / "runs").exists()
     assert "GROQ_API_KEY" in capsys.readouterr().err
+
+
+def test_summarizer_accepts_what_the_runner_writes(tmp_path):
+    bad_id = "ffffffff-0000-4000-8000-000000000009"
+
+    def handler(request):
+        if len(request_input(request)["evidence"]) == 1:
+            return httpx.Response(429, json={"error": "rate limit"})
+        return reply(request, abstain_single=False, cited_id=bad_id)
+
+    run_dir, _ = run(tmp_path, handler)
+    summary = summarize_run.summarize(run_dir, CORPUS)
+
+    assert summary["denominators"]["planned_provider_calls"] == 6
+    assert summary["denominators"]["attempts_by_outcome"] == {
+        "NOT_CALLED": 1, "OK": 3, "OUTPUT_INVALID": 0, "REFUSAL": 0, "UNAVAILABLE": 3}
+    assert [f["http_status"] for f in summary["provider_failures"]] == [429, 429, 429]
+    assert summary["validator"]["rejected"] == 3
+    assert (summary["abstention"]["scored_attempts"], summary["abstention"]["matched_attempts"]) == (3, 0)
+    assert summary["causal_quality"]["status"] == "NOT_ASSESSED"

@@ -1,4 +1,4 @@
-# Phase 07.2.1: provider run
+# Phase 07.2: provider run and summary
 
 `evaluation/run_provider.py` runs the frozen 07.1 corpus through the real
 `GroqAnalyzer.analyze()` and saves what happened. It reuses the production
@@ -21,6 +21,7 @@ output root `evaluation/scratch/` is git-ignored. Without a key the command
 exits 2 before writing anything. A run directory is never overwritten.
 
 Tests use a mocked transport only: `python -m pytest tests/test_evaluation_provider_run.py`.
+The summarizer's tests run with `python -m unittest discover -s evaluation -p "test_*.py"`.
 
 **Status: no real provider run has been executed or committed yet.** Nothing in
 this repository is a provider result until a run directory is published under
@@ -61,6 +62,44 @@ for failures.
   rules. It does not show that a citation supports the explanation or that a
   cause is true. Those need the human rubric, and the current corpus (three
   cases, all expecting abstention) cannot support a causal-accuracy claim.
+
+## Summarizing a run (07.2.2)
+
+`evaluation/summarize_run.py` reads a saved run directory and prints a JSON
+summary. It is standard library only, never calls a provider, and reuses the
+07.1 scorer unchanged.
+
+```bash
+python evaluation/summarize_run.py evaluation/scratch/<run_id>
+```
+
+Exit 0 means a summary was produced; exit 2 means the run is malformed,
+incomplete or inconsistent. It checks the accounting before reporting: status
+`COMPLETE`, the corpus SHA-256 and version match, the plan matches the corpus,
+every planned attempt has exactly one record, and each `outputs-r<N>.jsonl`
+holds exactly the `OK` attempts of that repeat and agrees with its record.
+
+The summary reports:
+
+- **Denominators:** corpus cases, provider-called cases, `NOT_CALLED` cases,
+  planned provider calls, and attempts by outcome.
+- **Provider failures:** every `UNAVAILABLE`, `REFUSAL` and `OUTPUT_INVALID`
+  attempt, with HTTP status, timeout flag and latency.
+- **Validator:** accepted and rejected counts among `OK` attempts, with each
+  rejection reason.
+- **Abstention:** per repeat and per case, over `OK` attempts only, with the
+  attempts that could not be scored listed. A case with fewer than two `OK`
+  attempts is reported as `INSUFFICIENT_OK_ATTEMPTS`; otherwise its abstention
+  decision across repeats is `CONSISTENT` or `INCONSISTENT`.
+- **Latency:** min, median and max in milliseconds, with the sample size. This
+  is provider wait as the runner measured it, not a performance baseline.
+- **`causal_quality`:** always `NOT_ASSESSED` here. Any causal-quality figure
+  needs labeled cases with an identifiable cause and the human rubric
+  (07.2.3). There is no accuracy field.
+
+`NOT_CALLED` cases are listed separately and excluded from every provider
+count. The summarizer's tests build run directories by hand, and one test
+checks that it accepts what the runner writes.
 
 ## Artifact-selection policy
 

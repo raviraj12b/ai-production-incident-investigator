@@ -12,7 +12,7 @@ from backend.analysis_pipeline import (
     AnalysisDraft, AnalysisValidationError, EvidenceLinkDraft, HypothesisDraft,
 )
 from backend.model_adapter import DEFAULT_MODEL, EvidenceView, GroqAnalyzer
-from evaluation import run_provider, summarize_run
+from evaluation import review_run, run_provider, summarize_run
 from evaluation.run_provider import prompt_fingerprint, run_evaluation, validate_draft
 from evaluation.score_abstention import load_corpus, load_outputs, score
 
@@ -211,3 +211,24 @@ def test_summarizer_accepts_what_the_runner_writes(tmp_path):
     assert summary["validator"]["rejected"] == 3
     assert (summary["abstention"]["scored_attempts"], summary["abstention"]["matched_attempts"]) == (3, 0)
     assert summary["causal_quality"]["status"] == "NOT_ASSESSED"
+
+
+def test_review_tooling_accepts_what_the_runner_writes(tmp_path):
+    # Every provider-called case returns one hypothesis citing real evidence.
+    run_dir, _ = run(tmp_path, lambda request: reply(request, abstain_single=False), repeats=2)
+
+    packet = review_run.build_packet(run_dir, CORPUS)
+    assert len(packet["items"]) == 4  # 2 provider-called cases x 2 repeats, one hypothesis each
+
+    for reviewer in ("rev-a", "rev-b"):
+        path = review_run.write_template(run_dir, reviewer, CORPUS)
+        rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+        for row in rows:
+            row.update(evidence_support="PARTIAL", contradiction_handling="NOT_APPLICABLE",
+                       causal_calibration="CALIBRATED")
+        path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+
+    summary = review_run.summarize_reviews(run_dir, CORPUS)
+    assert summary["publication"]["status"] == "PUBLISHABLE"
+    assert summary["denominators"]["reviewable_items"] == 4
+    assert summary["final_label_counts"]["evidence_support"]["PARTIAL"] == 4

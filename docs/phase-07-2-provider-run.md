@@ -21,7 +21,7 @@ output root `evaluation/scratch/` is git-ignored. Without a key the command
 exits 2 before writing anything. A run directory is never overwritten.
 
 Tests use a mocked transport only: `python -m pytest tests/test_evaluation_provider_run.py`.
-The summarizer's tests run with `python -m unittest discover -s evaluation -p "test_*.py"`.
+The summarizer's and review tooling's tests run with `python -m unittest discover -s evaluation -p "test_*.py"`.
 
 **Status: no real provider run has been executed or committed yet.** Nothing in
 this repository is a provider result until a run directory is published under
@@ -101,6 +101,19 @@ The summary reports:
 count. The summarizer's tests build run directories by hand, and one test
 checks that it accepts what the runner writes.
 
+## Human review (07.2.3)
+
+`evaluation/review_run.py` supports the human rubric in
+`docs/phase-07-2-review-rubric.md`. It is standard library only and has three
+commands: `packet` (reviewer-facing context, without corpus labels), `template`
+(a blank per-reviewer file that is rejected until filled in) and `summarize`
+(validates the review files and reports coverage, agreement, disagreements and
+whether a result is `PUBLISHABLE`). Review files live in `<run_dir>/reviews/`.
+The summary withholds label counts until two different reviewers cover every
+item and every disagreement has an adjudication record. Its `causal_truth`
+field is always `NOT_ASSESSED`. The rubric document is the reference for labels,
+process and the publication gate.
+
 ## Artifact-selection policy
 
 - Scratch and debug runs stay in `evaluation/scratch/` and are never committed.
@@ -113,3 +126,6 @@ checks that it accepts what the runner writes.
 - Runs produced by tests (mocked transport) are never published.
 - Failures, `NOT_CALLED` records, and validator rejections are published with the
   run; a run is not trimmed to its successes.
+- Review files in `reviews/` are published with the run they judge. Reviewer IDs
+  are pseudonyms and notes contain no secrets, personal data or real telemetry.
+  Unfilled templates are never published.

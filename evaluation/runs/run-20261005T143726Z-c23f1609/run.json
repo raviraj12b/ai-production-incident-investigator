@@ -1,0 +1,37 @@
+{
+  "corpus": {
+    "file": "corpus.json",
+    "sha256": "6b0ee969c8919d8a4382fb7e4cbe63f51e16736ac9c85edc5d36475a7a031590",
+    "version": "07.1.0"
+  },
+  "finished_at": "2026-10-05T14:37:34+00:00",
+  "format": "07.2.1",
+  "plan": {
+    "not_called_cases": [
+      "no-observations"
+    ],
+    "note": "Small repeatability sample, not a statistically significant study.",
+    "planned_provider_calls": 6,
+    "provider_called_cases": [
+      "isolated-server-error",
+      "mixed-status-and-trace"
+    ],
+    "repeats": 3
+  },
+  "prompt": {
+    "covers": "system instructions and response schema only",
+    "sha256": "7a3154745b8aa283e5a56fc841fbe9e8aebb4949aa98cc129a3eeff91482a8e8"
+  },
+  "provider": {
+    "endpoint_host": "api.groq.com",
+    "model": "openai/gpt-oss-20b",
+    "name": "groq"
+  },
+  "repo": {
+    "commit": "9e7d7f8eb842d1d39fc977a910f3ad6019232c77",
+    "dirty": false
+  },
+  "run_id": "run-20261005T143726Z-c23f1609",
+  "started_at": "2026-10-05T14:37:26+00:00",
+  "status": "COMPLETE"
+}

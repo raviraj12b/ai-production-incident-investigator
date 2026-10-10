@@ -129,3 +129,40 @@ process and the publication gate.
 - Review files in `reviews/` are published with the run they judge. Reviewer IDs
   are pseudonyms and notes contain no secrets, personal data or real telemetry.
   Unfilled templates are never published.
+
+`evaluation/check_publishable.py` checks these conditions without changing
+anything. It is standard library only and never calls a provider:
+
+```
+python evaluation/check_publishable.py evaluation/scratch/<run_id> --scan-env-secret GROQ_API_KEY
+```
+
+It verifies the `COMPLETE` status, `repo.dirty` being false (an unknown value
+fails), the committed corpus hash, that the directory is named by its `run_id`
+and holds only the files the runner writes, that `summarize_run` accepts the
+saved files, and that the secret scan finds nothing. It also lists the review
+items the packet yields and cross-checks that count against `runs.jsonl`.
+Failed checks exit 1 with an action each; an unreadable run exits 2. It never
+copies, rewrites or repairs a file, and a failure is never a reason to edit the
+evidence.
+
+Symlinks, Windows junctions and other reparse points, and special files (pipes,
+sockets, devices) anywhere in the run directory, including the directory
+itself, fail the layout check. They are found with `lstat` before any file is
+opened and are never followed. When one is present the check reports only the
+layout failure and skips the rest, because following a link could read files
+outside the run. The secret scan also opens files without following links where
+the platform supports it. `summarize_run` and `review_run` open files normally,
+so do not run the check on a directory that something else can modify. The
+Windows reparse-point path is not exercised by the tests, which create POSIX
+symlinks and skip if the environment cannot.
+
+Two limits matter. The secret scan is detection, not proof of absence: it looks
+for a fixed set of patterns and, with `--scan-env-secret`, the literal value of
+one environment variable, and it reports file, line and pattern name without
+printing the match. And passing means only that the artifact is eligible for
+publication. It says nothing about quality, and review status is reported
+separately: a run can pass while human review is pending and causal quality is
+`NOT_ASSESSED`. A `reviews/` directory holding invalid or unfilled files fails
+the check, because those are never published. The check cannot show that a copy
+is byte-identical to the original, so compare file hashes after copying.

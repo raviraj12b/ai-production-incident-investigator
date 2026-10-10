@@ -99,3 +99,29 @@ Even when `PUBLISHABLE`, the result describes the labels above for the items
 that were reviewed. Calling it root-cause accuracy would need cases with an
 identifiable cause; the current corpus has none. The denominators (items,
 exclusions, reviewers, disagreements) are always published with any result.
+
+## Reviewing the published run (pending)
+
+Status for `evaluation/runs/run-20261005T143726Z-c23f1609/`: **no review has
+been recorded.** There is no `reviews/` directory, no reviewer has labeled any
+item, and the causal-quality status is `NOT_PUBLISHABLE`. Nothing in this
+repository is a human-reviewed result until the steps below are done by two real
+reviewers.
+
+The published directory is evidence and is not edited while reviews are in
+progress. `template` writes into the run directory, so each reviewer works on a
+private copy:
+
+1. Each reviewer copies the published run directory to their own scratch location (for example `evaluation/scratch/review-<id>/`, which is git-ignored) and does not read anyone else's copy or file.
+2. In that copy: `python evaluation/review_run.py packet <copy>` shows what to judge, and `python evaluation/review_run.py template <copy> --reviewer <id>` creates `reviews/<id>.jsonl`. The reviewer fills in every label and a short note, following the rubric above, then sends back only that one file.
+3. Only after both files exist are they added to `reviews/` in a working copy of the run. Any item where the two differ gets an adjudication record in `reviews/adjudication.jsonl`.
+4. Run `python evaluation/review_run.py summarize <run_dir>`. Only a `PUBLISHABLE` status allows label counts to be reported.
+5. Run `python evaluation/check_publishable.py <run_dir>` on the result. It rejects invalid or unfilled review files, so a template that nobody filled in cannot be published by accident.
+6. Add the review files to the published run directory and update `docs/phase-07-2-results.md` in a separate commit. Publish the denominators, the reviewer count and every disagreement, including ones that were adjudicated.
+
+Limits that remain even then. The tooling cannot verify independence or that the
+two reviewer IDs belong to two different people, so both are procedural
+requirements and one person using two IDs is a violation. A reviewed result
+describes the labels above for these items only. It is not root-cause accuracy,
+because the corpus has no case with an identifiable cause, and it covers four
+items from one model and one prompt.

@@ -23,9 +23,11 @@ exits 2 before writing anything. A run directory is never overwritten.
 Tests use a mocked transport only: `python -m pytest tests/test_evaluation_provider_run.py`.
 The summarizer's and review tooling's tests run with `python -m unittest discover -s evaluation -p "test_*.py"`.
 
-**Status: no real provider run has been executed or committed yet.** Nothing in
-this repository is a provider result until a run directory is published under
-the policy below.
+**Status: one real provider run is published** as
+`evaluation/runs/run-20261005T143726Z-c23f1609/`; its measured results and
+limits are in `docs/phase-07-2-results.md`. No human review has been recorded
+for it. Nothing else in this repository is a provider result unless it is
+published under the policy below.
 
 ## Run directory
 

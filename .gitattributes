@@ -1,0 +1,2 @@
+# Published provider runs are evidence: never convert line endings
+evaluation/runs/** -text
